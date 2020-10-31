@@ -1,6 +1,10 @@
-requires 'perl', '5.008001';
-
-on 'test' => sub {
-    requires 'Test::More', '0.98';
-};
-
+Compras::UA
+DDP
+Module::Build::Tiny~0.035
+Mojo::Base
+Mojo::Template
+Mojo::UserAgent
+Test::More~0.98
+lib
+strict
+utf8

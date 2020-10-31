@@ -7,18 +7,18 @@ our $VERSION = "0.01";
 
 has base   => sub { 'http://compras.dados.gov.br' };
 has module => sub { die "module is required" };
-has method => sub { die "method is required" };
+has method => sub { shift->module or die "method is required" };
 has format => sub { 'json' };
 has params => sub { +{} };
 has _ua    => sub { Mojo::UserAgent->new };
 has _templ => sub { Mojo::Template->new };
 has _data  => sub { <<'EOT';
-	% my $url = qq{$base/$module/v1/$method.$format?};
-	% my $params = join "&", map {  qq($_=$params->{$_}) } keys %$params;
-	<%= $url . $params; =%>
+	% my $url = qq{$base/$module/v1/$method.$format};
+	% my $params = join "&", map { qq($_=$params->{$_}) } keys %$params;
+	% $url = $params ? join("?", $url, $params) : $url;
+	<%= $url =%>
 EOT
 };
-
 
 sub url( $self ) {
 	return $self->_templ->vars(1)->render($self->_data, { map { $_ => $self->$_ } qw( base module method format params ) });
