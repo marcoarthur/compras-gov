@@ -6,8 +6,10 @@ use Compras::UA;
 use DDP;
 
 my @searches = (
-	{ module => 'fornecedores', params => { municipio => 72095 } }, # crashing
-	{ module => 'contratos', params => {} },
+	# all providers from Ubatuba city ( id 72095 )
+	#{ module => 'fornecedores', params => { id_municipio => 72095 } },
+	# bids from provider (id 538083)
+	{ module => 'licitacoes', params => { id_fornecedor => 538083 } },
 );
 
 sub do_search {

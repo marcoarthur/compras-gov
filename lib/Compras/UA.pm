@@ -34,7 +34,8 @@ sub get_data( $self ) {
 	my $cached = $self->_hist->{$url};
 	return $cached if $cached;
 
-	$self->get_data_p->then(sub ($tx) { $res = $tx->result->body })->catch( sub ($err) { say "Error: $err with url: $url" } )->wait;
+	my $parser = $format eq 'json' ? 'json': 'body';
+	$self->get_data_p->then(sub ($tx) { $res = $tx->result->$parser })->catch( sub ($err) { say "Error: $err with url: $url" } )->wait;
 	$self->_hist->{$url} = $res;
 	return $res;
 }
