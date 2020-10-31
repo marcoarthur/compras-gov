@@ -12,6 +12,7 @@ has format => sub { 'json' };
 has params => sub { +{} };
 has _ua    => sub { Mojo::UserAgent->new };
 has _templ => sub { Mojo::Template->new };
+has _hist  => sub { +{} };
 has _data  => sub { <<'EOT';
 	% my $url = qq{$base/$module/v1/$method.$format};
 	% my $params = join "&", map { qq($_=$params->{$_}) } keys %$params;
@@ -29,9 +30,12 @@ async sub get_data_p( $self ) {
 }
 
 sub get_data( $self ) {
-	my ($res, $format) = undef, $self->format;
+	my ($res, $format, $url) = ( undef, $self->format, $self->url );
+	my $cached = $self->_hist->{$url};
+	return $cached if $cached;
 
-	$self->get_data_p->then(sub ($tx) { $res = $tx->result->body })->catch( sub ($err) { say "Error: $err with url: " . $self->url } )->wait;
+	$self->get_data_p->then(sub ($tx) { $res = $tx->result->body })->catch( sub ($err) { say "Error: $err with url: $url" } )->wait;
+	$self->_hist->{$url} = $res;
 	return $res;
 }
 
