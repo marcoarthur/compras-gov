@@ -4,7 +4,7 @@
       "Marco Arthur <arthurpbs@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v3.1.10, CPAN::Meta::Converter version 2.150010",
+   "generated_by" : "Minilla/v3.1.11, CPAN::Meta::Converter version 2.150010",
    "license" : [
       "perl_5"
    ],
@@ -42,7 +42,11 @@
       },
       "runtime" : {
          "requires" : {
-            "perl" : "5.008001"
+            "DDP" : "0",
+            "Mojo::Base" : "0",
+            "Mojo::Template" : "0",
+            "Mojo::UserAgent" : "0",
+            "perl" : "5.028"
          }
       },
       "test" : {
@@ -52,7 +56,18 @@
       }
    },
    "release_status" : "unstable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/marcoarthur/compras-gov/issues"
+      },
+      "homepage" : "https://github.com/marcoarthur/compras-gov",
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/marcoarthur/compras-gov.git",
+         "web" : "https://github.com/marcoarthur/compras-gov"
+      }
+   },
    "version" : "0.01",
-   "x_serialization_backend" : "JSON::PP version 4.04",
+   "x_serialization_backend" : "JSON::PP version 4.05",
    "x_static_install" : 1
 }
