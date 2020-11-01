@@ -1,10 +1,15 @@
-Compras::UA
-DDP
-Module::Build::Tiny~0.035
-Mojo::Base
-Mojo::Template
-Mojo::UserAgent
-Test::More~0.98
-lib
-strict
-utf8
+requires 'DDP';
+requires 'Mojo::Base';
+requires 'Mojo::Template';
+requires 'Mojo::UserAgent';
+requires 'perl', '5.028';
+
+on configure => sub {
+    requires 'Module::Build::Tiny', '0.035';
+};
+
+on test => sub {
+    requires 'Test::More', '0.98';
+};
+
+

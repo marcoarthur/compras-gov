@@ -13,7 +13,8 @@ has params => sub { +{} };
 has _ua    => sub { Mojo::UserAgent->new };
 has _templ => sub { Mojo::Template->new };
 has _hist  => sub { +{} };
-has _data  => sub { <<'EOT';
+has _data  => sub {
+    <<'EOT';
 	% my $url = qq{$base/$module/v1/$method.$format};
 	% my $params = join "&", map { qq($_=$params->{$_}) } keys %$params;
 	% $url = $params ? join("?", $url, $params) : $url;
@@ -22,22 +23,24 @@ EOT
 };
 
 sub url( $self ) {
-	return $self->_templ->vars(1)->render($self->_data, { map { $_ => $self->$_ } qw( base module method format params ) });
+    return $self->_templ->vars(1)
+      ->render( $self->_data, { map { $_ => $self->$_ } qw( base module method format params ) } );
 }
 
 async sub get_data_p( $self ) {
-	return $self->_ua->get_p($self->url);
+    return $self->_ua->get_p( $self->url );
 }
 
 sub get_data( $self ) {
-	my ($res, $format, $url) = ( undef, $self->format, $self->url );
-	my $cached = $self->_hist->{$url};
-	return $cached if $cached;
+    my ( $res, $format, $url ) = ( undef, $self->format, $self->url );
+    my $cached = $self->_hist->{$url};
+    return $cached if $cached;
 
-	my $parser = $format eq 'json' ? 'json': 'body';
-	$self->get_data_p->then(sub ($tx) { $res = $tx->result->$parser })->catch( sub ($err) { say "Error: $err with url: $url" } )->wait;
-	$self->_hist->{$url} = $res;
-	return $res;
+    my $parser = $format eq 'json' ? 'json' : 'body';
+    $self->get_data_p->then( sub ($tx) { $res = $tx->result->$parser } )
+      ->catch( sub ($err) { say "Error: $err with url: $url" } )->wait;
+    $self->_hist->{$url} = $res;
+    return $res;
 }
 
 1;
