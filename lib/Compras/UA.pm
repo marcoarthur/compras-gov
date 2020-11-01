@@ -3,6 +3,7 @@ use 5.028;
 use Mojo::Base -base, -signatures, -async_await;
 use Mojo::Template;
 use Mojo::UserAgent;
+use Compras::RSet;
 our $VERSION = "0.01";
 
 has base   => sub { 'http://compras.dados.gov.br' };
@@ -36,9 +37,16 @@ sub get_data( $self ) {
     my $cached = $self->_hist->{$url};
     return $cached if $cached;
 
-    my $parser = $format eq 'json' ? 'json' : 'body';
-    $self->get_data_p->then( sub ($tx) { $res = $tx->result->$parser } )
-      ->catch( sub ($err) { say "Error: $err with url: $url" } )->wait;
+    $self->get_data_p
+    ->then(
+        sub ($tx) {
+	    my $rs = Compras::RSet->new( tx => $tx );
+	    $res = $rs->parse;
+       	} )
+    ->catch( sub ($err) {
+	    say "Error: $err with url: $url";
+    } )->wait;
+
     $self->_hist->{$url} = $res;
     return $res;
 }
