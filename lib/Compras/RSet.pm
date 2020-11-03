@@ -3,16 +3,29 @@ use Mojo::Base -base, -signatures;
 use Mojo::Exception qw(raise);
 use Mojo::JSON::Pointer;
 use Mojo::Collection;
+use Mojo::Loader qw(load_class);
 
-has tx => sub { die "Required attrib tx" };
+has tx             => sub { die "Required attrib tx" };
 has json_structure => sub {
-	{
-		results => '/_embedded',
-		links => '/_links',
-		count => '/count',
-		offset => '/offset',
-	}
+    {
+        results => '/_embedded',
+        links   => '/_links',
+        count   => '/count',
+        offset  => '/offset',
+    }
 };
+
+has models_table => sub {
+    { fornecedores => 'Compras::Model::Providers', }
+};
+
+sub _determine_model( $self, $type ) {
+    my $class = $self->models_table->{$type};
+    raise "Compras::Exception", "Cannot find a model for $type" unless $class;
+    my $e = load_class($class);
+    raise "Compras::Exception", "Error loading class: $e" if $e;
+    return $class;
+}
 
 # validate json response structure
 sub _validate_json( $self, $json_obj )  {
@@ -24,7 +37,22 @@ sub _validate_json( $self, $json_obj )  {
 	    raise 'Compras::Exception', "Invalid Server Response missing $member";
 	}
 	my $val = $pointer->get($member);
-	$parsed->{ $key } = ref $val eq 'ARRAY' ? Mojo::Collection->new(@$val) : $val;
+	if ( $key eq "results" ) {
+		# determine the result type
+		my @types = keys %$val;
+		if ( @types > 1 ) {
+		    raise "Compras::Exception", "More than one type: @types";
+		}
+		# construct the model from hash
+	        my $type = shift @types;
+		my $results = $val->{$type};
+	        my $class   = $self->_determine_model($type);
+		raise "Compras::Exception", "Server results are not lists" unless ref $results eq 'ARRAY';
+		my $collection = Mojo::Collection->new(@$results)->map( sub { $class->new->from_hash($_) } );
+		$parsed->{ $key } = $collection;
+	} else {
+	    $parsed->{ $key } = $val;
+	}
     }
     return $parsed;
 }
