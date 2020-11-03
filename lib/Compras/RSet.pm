@@ -20,6 +20,7 @@ has models_table => sub {
 	fornecedores => 'Compras::Model::Providers',
 	licitacoes => 'Compras::Model::Bids',
 	orgaos => 'Compras::Model::Institutions',
+	contratos => 'Compras::Model::Contracts',
     }
 };
 
