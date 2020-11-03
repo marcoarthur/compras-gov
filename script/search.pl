@@ -46,8 +46,30 @@ my @searches = (
 
             p $_->get_data for @uas;
         },
+        run => 0,
+    },
+    # find gov contracts involving personal contractors
+    {
+        description => 'Pesquisar contratos',
+        search      => {
+            module => 'contratos',
+            params => { tipo_pessoa => 'PF' }
+        },
+        cb  => sub ( $data ) { p $data; return $data },
+        run => 0,
+
+    },
+    # find gov contracts involving personal contractors
+    {
+        description => 'Pesquisar contratos',
+        search      => {
+            module => 'contratos',
+            params => { modalidade => 6, data_inicio_vigencia_min => '2020-01-01',  valor_inicial_min => 50000 }
+        },
+        cb  => sub ( $data ) { p $data; return $data },
         run => 1,
-    }
+
+    },
 );
 
 sub do_search {
