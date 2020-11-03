@@ -15,8 +15,11 @@ my @searches = (
             module => 'fornecedores',
             params => { id_municipio => 72095 }
         },
-        cb  => sub ( $data ) { p $data; return $data },
-        run => 1,
+        cb  => sub ( $data ) {
+		$data->{results}->each( sub{ p $_ } );
+		return $data
+	},
+        run => 0,
     },
 
     # bids from provider (id 538083)
@@ -55,8 +58,8 @@ my @searches = (
             module => 'contratos',
             params => { tipo_pessoa => 'PF' }
         },
-        cb  => sub ( $data ) { p $data; return $data },
-        run => 0,
+        cb  => sub ( $data ) { $data->{results}->each( sub{ p $_ } ); return $data },
+        run => 1,
 
     },
     # find gov contracts involving personal contractors
