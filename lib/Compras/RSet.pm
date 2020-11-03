@@ -16,7 +16,11 @@ has json_structure => sub {
 };
 
 has models_table => sub {
-    { fornecedores => 'Compras::Model::Providers', licitacoes => 'Compras::Model::Bids' }
+    { 
+	fornecedores => 'Compras::Model::Providers',
+	licitacoes => 'Compras::Model::Bids',
+	orgaos => 'Compras::Model::Institutions',
+    }
 };
 
 sub _determine_model( $self, $type ) {
@@ -46,8 +50,8 @@ sub _validate_json( $self, $json_obj )  {
 		# construct the model from hash
 	        my $type = shift @types;
 		my $results = $val->{$type};
-	        my $class   = $self->_determine_model($type);
-		raise "Compras::Exception", "Server results are not lists" unless ref $results eq 'ARRAY';
+	        my $class   = $self->_determine_model(lc $type);
+		raise "Compras::Exception", "Server results are not a list: $results" unless ref $results eq 'ARRAY';
 		my $collection = Mojo::Collection->new(@$results)->map( sub { $class->new->from_hash($_) } );
 		$parsed->{ $key } = $collection;
 	} else {
