@@ -59,7 +59,7 @@ my @searches = (
             params => { tipo_pessoa => 'PF' }
         },
         cb  => sub ( $data ) { $data->{results}->each( sub{ p $_ } ); return $data },
-        run => 1,
+        run => 0,
 
     },
     # find gov contracts involving personal contractors
@@ -69,8 +69,8 @@ my @searches = (
             module => 'contratos',
             params => { modalidade => 6, data_inicio_vigencia_min => '2020-01-01',  valor_inicial_min => 50000 }
         },
-        cb  => sub ( $data ) { p $data; return $data },
-        run => 0,
+        cb  => sub ( $data ) { $data->{results}->each( sub{ p $_ } ); return $data },
+        run => 1,
 
     },
 );
