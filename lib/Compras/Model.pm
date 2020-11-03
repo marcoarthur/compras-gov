@@ -10,7 +10,8 @@ sub from_hash ( $self, $hash ) {
     for my $attr ( keys %{ $self->attributes } ) {
         raise 'Compras::Exception', "Cannot find $attr"
           unless exists $hash->{$attr};
-        $self->attr( $attr => sub { $hash->{$attr} } );
+        $self->attr( $attr );
+	$self->$attr($hash->{$attr});
     }
     $self;
 }
