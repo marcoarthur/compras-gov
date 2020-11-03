@@ -16,7 +16,7 @@ has json_structure => sub {
 };
 
 has models_table => sub {
-    { fornecedores => 'Compras::Model::Providers', }
+    { fornecedores => 'Compras::Model::Providers', licitacoes => 'Compras::Model::Bids' }
 };
 
 sub _determine_model( $self, $type ) {
