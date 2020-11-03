@@ -23,7 +23,7 @@ sub _determine_model( $self, $type ) {
     my $class = $self->models_table->{$type};
     raise "Compras::Exception", "Cannot find a model for $type" unless $class;
     my $e = load_class($class);
-    raise "Compras::Exception", "Error loading class: $e" if $e;
+    raise "Compras::Exception", "Error ($e) loading class: $class" if $e;
     return $class;
 }
 
