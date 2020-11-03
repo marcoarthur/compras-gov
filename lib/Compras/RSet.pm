@@ -35,30 +35,29 @@ sub _determine_model( $self, $type ) {
 # validate json response structure
 sub _validate_json( $self, $json_obj )  {
     my $pointer = Mojo::JSON::Pointer->new($json_obj);
-    my $parsed = {};
+    my ($parsed, $val) = ({}, undef);
 
     while( my ($key, $member) = each %{ $self->json_structure } ) {
 	if ( ! $pointer->contains($member) )  {
 	    raise 'Compras::Exception', "Invalid Server Response missing $member";
 	}
-	my $val = $pointer->get($member);
-	if ( $key eq "results" ) {
-		# determine the result type
-		my @types = keys %$val;
-		if ( @types > 1 ) {
-		    raise "Compras::Exception", "More than one type: @types";
-		}
-		# construct the model from hash
-	        my $type = shift @types;
-		my $results = $val->{$type};
-	        my $class   = $self->_determine_model(lc $type);
-		raise "Compras::Exception", "Server results are not a list: $results" unless ref $results eq 'ARRAY';
-		my $collection = Mojo::Collection->new(@$results)->map( sub { $class->new->from_hash($_) } );
-		$parsed->{ $key } = $collection;
-	} else {
-	    $parsed->{ $key } = $val;
-	}
+	$val = $pointer->get($member);
+	$parsed->{ $key } = $val;
     }
+
+    # treat ''_embedded'' pointer specially (it holds the actual interesting data).
+    $val = $pointer->get('/_embedded');
+    my @types = keys %$val;
+    if ( @types > 1 ) {
+        raise "Compras::Exception", "More than one type: @types";
+    }
+    # construct the model from hash
+    my $type = shift @types;
+    my $results = $val->{$type};
+    my $class   = $self->_determine_model(lc $type);
+    raise "Compras::Exception", "Server results are not a list: $results" unless ref $results eq 'ARRAY';
+    my $collection = Mojo::Collection->new(@$results)->map( sub { $class->new->from_hash($_) } );
+    $parsed->{ results } = $collection;
     return $parsed;
 }
 
