@@ -2,6 +2,7 @@ package Compras::RSet;
 use Mojo::Base -base, -signatures;
 use Mojo::Exception qw(raise);
 use Mojo::JSON::Pointer;
+use Mojo::Collection;
 
 has tx => sub { die "Required attrib tx" };
 has json_structure => sub {
@@ -22,7 +23,8 @@ sub _validate_json( $self, $json_obj )  {
 	if ( ! $pointer->contains($member) )  {
 	    raise 'Compras::Exception', "Invalid Server Response missing $member";
 	}
-	$parsed->{ $key } = $pointer->get($member);
+	my $val = $pointer->get($member);
+	$parsed->{ $key } = ref $val eq 'ARRAY' ? Mojo::Collection->new(@$val) : $val;
     }
     return $parsed;
 }

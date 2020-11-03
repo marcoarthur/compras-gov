@@ -16,7 +16,7 @@ my @searches = (
             params => { id_municipio => 72095 }
         },
         cb  => sub ( $data ) { p $data; return $data },
-        run => 0,
+        run => 1,
     },
 
     # bids from provider (id 538083)
@@ -67,7 +67,7 @@ my @searches = (
             params => { modalidade => 6, data_inicio_vigencia_min => '2020-01-01',  valor_inicial_min => 50000 }
         },
         cb  => sub ( $data ) { p $data; return $data },
-        run => 1,
+        run => 0,
 
     },
 );
