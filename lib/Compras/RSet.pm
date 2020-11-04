@@ -4,6 +4,7 @@ use Mojo::Exception qw(raise);
 use Mojo::JSON::Pointer;
 use Mojo::Collection;
 use Mojo::Loader qw(load_class);
+use utf8;
 
 has tx             => sub { die "Required attrib tx" };
 has json_structure => sub {

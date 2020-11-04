@@ -1,5 +1,6 @@
 package Compras::Model::Bids;
 use Mojo::Base 'Compras::Model';
+use utf8;
 
 has attributes => sub {
     {

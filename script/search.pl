@@ -1,10 +1,11 @@
-#!perl
+#!/usr/bin/env perl
 use 5.028;
 use Mojo::Base -signatures;
 use lib qw(./lib);
 use utf8;
 use Compras::UA;
 use DDP;
+binmode(STDERR, ":encoding(UTF-8)");
 
 my @searches = (
 

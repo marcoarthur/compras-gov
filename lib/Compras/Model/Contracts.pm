@@ -1,5 +1,6 @@
 package Compras::Model::Contracts;
 use Mojo::Base 'Compras::Model';
+use utf8;
 
 has attributes => sub {
     {
