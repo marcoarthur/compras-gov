@@ -1,6 +1,6 @@
 package Compras::Model::Institutions;
 use Mojo::Base 'Compras::Model';
-use uft8;
+use utf8;
 
 has attributes => sub {
     {
