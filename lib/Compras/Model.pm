@@ -12,7 +12,11 @@ sub from_hash ( $self, $hash ) {
           unless exists $hash->{$attr};
         $self->attr( $attr );
 	$self->$attr($hash->{$attr});
+        delete %$hash{$attr};
     }
+    # save under _other the data left under $hash not listed on attributes
+    $self->attr( '_other' );
+    $self->_other($hash);
     $self;
 }
 
