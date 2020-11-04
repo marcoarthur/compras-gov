@@ -1,5 +1,9 @@
 requires 'DDP';
 requires 'Mojo::Base';
+requires 'Mojo::Collection';
+requires 'Mojo::Exception';
+requires 'Mojo::JSON::Pointer';
+requires 'Mojo::Loader';
 requires 'Mojo::Template';
 requires 'Mojo::UserAgent';
 requires 'perl', '5.028';
