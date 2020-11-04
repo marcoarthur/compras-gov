@@ -17,15 +17,15 @@ has json_structure => sub {
 };
 
 has models_table => sub {
-    { 
-	fornecedores => 'Compras::Model::Providers',
-	licitacoes => 'Compras::Model::Bids',
-	orgaos => 'Compras::Model::Institutions',
-	contratos => 'Compras::Model::Contracts',
+    {
+        fornecedores => 'Compras::Model::Providers',
+        licitacoes   => 'Compras::Model::Bids',
+        orgaos       => 'Compras::Model::Institutions',
+        contratos    => 'Compras::Model::Contracts',
     }
 };
 
-sub _determine_model( $self, $type ) {
+sub _determine_model ( $self, $type ) {
     my $class = $self->models_table->{$type};
     raise "Compras::Exception", "Cannot find a model for $type" unless $class;
     my $e = load_class($class);
@@ -34,16 +34,16 @@ sub _determine_model( $self, $type ) {
 }
 
 # validate json response structure
-sub _validate_json( $self, $json_obj )  {
+sub _validate_json ( $self, $json_obj ) {
     my $pointer = Mojo::JSON::Pointer->new($json_obj);
-    my ($parsed, $val) = ({}, undef);
+    my ( $parsed, $val ) = ( {}, undef );
 
-    while( my ($key, $member) = each %{ $self->json_structure } ) {
-	if ( ! $pointer->contains($member) )  {
-	    raise 'Compras::Exception', "Invalid Server Response missing $member";
-	}
-	$val = $pointer->get($member);
-	$parsed->{ $key } = $val;
+    while ( my ( $key, $member ) = each %{ $self->json_structure } ) {
+        if ( !$pointer->contains($member) ) {
+            raise 'Compras::Exception', "Invalid Server Response missing $member";
+        }
+        $val = $pointer->get($member);
+        $parsed->{$key} = $val;
     }
 
     # treat ''_embedded'' pointer specially (it holds the actual interesting data).
@@ -52,13 +52,15 @@ sub _validate_json( $self, $json_obj )  {
     if ( @types > 1 ) {
         raise "Compras::Exception", "More than one type: @types";
     }
+
     # construct the model from hash
-    my $type = shift @types;
+    my $type    = shift @types;
     my $results = $val->{$type};
-    my $class   = $self->_determine_model(lc $type);
-    raise "Compras::Exception", "Server results are not a list: $results" unless ref $results eq 'ARRAY';
+    my $class   = $self->_determine_model( lc $type );
+    raise "Compras::Exception", "Server results are not a list: $results"
+      unless ref $results eq 'ARRAY';
     my $collection = Mojo::Collection->new(@$results)->map( sub { $class->new->from_hash($_) } );
-    $parsed->{ results } = $collection;
+    $parsed->{results} = $collection;
     return $parsed;
 }
 
@@ -77,7 +79,7 @@ sub parse( $self ) {
 
     if ( $content_type =~ qr{application/json} ) {
         my $res_obj = $self->tx->res->json;
-        $result_set = $self->_parse_model_json( $res_obj );
+        $result_set = $self->_parse_model_json($res_obj);
     } else {
         $result_set = $self->_parse_model_other( $self->tx->res->body );
     }
@@ -86,13 +88,13 @@ sub parse( $self ) {
 }
 
 # Parse a JSON object
-sub _parse_model_json( $self, $res_obj ) {
+sub _parse_model_json ( $self, $res_obj ) {
     my $structure = $self->_validate_json($res_obj);
     return $structure;
 }
 
 # Parse Html or CSS or other type
-sub _parse_model_other( $self, $data ) {
+sub _parse_model_other ( $self, $data ) {
     return $data;
 }
 

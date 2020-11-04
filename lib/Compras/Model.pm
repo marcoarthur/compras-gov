@@ -10,12 +10,13 @@ sub from_hash ( $self, $hash ) {
     for my $attr ( keys %{ $self->attributes } ) {
         raise 'Compras::Exception', "Cannot find $attr"
           unless exists $hash->{$attr};
-        $self->attr( $attr );
-	$self->$attr($hash->{$attr});
+        $self->attr($attr);
+        $self->$attr( $hash->{$attr} );
         delete %$hash{$attr};
     }
+
     # save under _other the data left under $hash not listed on attributes
-    $self->attr( '_other' );
+    $self->attr('_other');
     $self->_other($hash);
     $self;
 }
