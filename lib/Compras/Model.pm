@@ -21,4 +21,26 @@ sub from_hash ( $self, $hash ) {
     $self;
 }
 
+sub to_hash( $self ) {
+    my %hash;
+    for my $attr ( keys %{ $self->attributes } ) {
+        $hash{ $attr } = $self->$attr;
+    }
+    return \%hash;
+}
+
+sub to_arrayref( $self ) {
+    my $keys = $self->attributes_order;
+    my @values;
+    for my $attr ( @$keys ) {
+        push @values, $self->$attr;
+    }
+    return \@values;
+}
+
+sub attributes_order( $self ) {
+    my @sorted_attrs = sort keys %{ $self->attributes };
+    return \@sorted_attrs;
+}
+
 1;
