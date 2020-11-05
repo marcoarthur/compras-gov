@@ -22,19 +22,13 @@ sub from_hash ( $self, $hash ) {
 }
 
 sub to_hash( $self ) {
-    my %hash;
-    for my $attr ( keys %{ $self->attributes } ) {
-        $hash{ $attr } = $self->$attr;
-    }
+    my %hash = map { $_ => $self->$_ } keys %{ $self->attributes };
     return \%hash;
 }
 
 sub to_arrayref( $self ) {
-    my $keys = $self->attributes_order;
-    my @values;
-    for my $attr ( @$keys ) {
-        push @values, $self->$attr;
-    }
+    my $keys   = $self->attributes_order;
+    my @values = @{ $self->to_hash }{@$keys};
     return \@values;
 }
 
