@@ -5,13 +5,14 @@ use Mojo::Template;
 use Mojo::UserAgent;
 use Compras::RSet;
 our $VERSION = "0.01";
+use constant TIMEOUT => 180;
 
 has base   => sub { 'http://compras.dados.gov.br' };
 has module => sub { die "module is required" };
 has method => sub { shift->module or die "method is required" };
 has format => sub { 'json' };
 has params => sub { +{} };
-has _ua    => sub { Mojo::UserAgent->new };
+has _ua    => sub { Mojo::UserAgent->new->inactivity_timeout(TIMEOUT) };
 has _templ => sub { Mojo::Template->new };
 has _hist  => sub { +{} };
 has _data  => sub {
