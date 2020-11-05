@@ -5,7 +5,16 @@ use lib qw(./lib);
 use utf8;
 use Compras::UA;
 use DDP;
-binmode(STDERR, ":encoding(UTF-8)");
+use Text::CSV qw( csv );
+binmode( STDERR, ":encoding(UTF-8)" );
+
+sub write_csv( $data ) {
+    my $res = $data->{results} or die "No results";
+    my @lines;
+    $res->each( sub { push @lines, $_->to_arrayref } );
+    unshift @lines, $res->[0]->attributes_order;
+    csv( in => \@lines, out => \*STDERR );
+}
 
 my @searches = (
 
@@ -16,11 +25,13 @@ my @searches = (
             module => 'fornecedores',
             params => { id_municipio => 72095 }
         },
-        cb  => sub ( $data ) {
-		$data->{results}->each( sub{ p $_ } );
-		return $data
-	},
-        run => 0,
+        cb => sub ( $data ) {
+
+            #$data->{results}->each( sub{ p $_ } );
+            write_csv($data);
+            return $data;
+        },
+        run => 1,
     },
 
     # bids from provider (id 538083)
@@ -52,6 +63,7 @@ my @searches = (
         },
         run => 0,
     },
+
     # find gov contracts involving personal contractors
     {
         description => 'Pesquisar contratos',
@@ -59,19 +71,32 @@ my @searches = (
             module => 'contratos',
             params => { tipo_pessoa => 'PF' }
         },
-        cb  => sub ( $data ) { $data->{results}->each( sub{ p $_ } ); return $data },
+        cb => sub ( $data ) {
+            $data->{results}->each( sub { p $_ } );
+            return $data;
+        },
         run => 0,
 
     },
+
     # find gov contracts involving personal contractors
     {
         description => 'Pesquisar contratos',
         search      => {
             module => 'contratos',
-            params => { modalidade => 6, data_inicio_vigencia_min => '2020-01-01',  valor_inicial_min => 50000 }
+            params => {
+                modalidade               => 6,
+                data_inicio_vigencia_min => '2020-01-01',
+                valor_inicial_min        => 50000
+            }
         },
-        cb  => sub ( $data ) { $data->{results}->each( sub{ p $_ } ); return $data },
-        run => 1,
+        cb => sub ( $data ) {
+
+            #$data->{results}->each( sub{ p $_ } );
+            write_csv($data);
+            return $data;
+        },
+        run => 0,
 
     },
 );
