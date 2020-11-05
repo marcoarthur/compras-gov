@@ -31,7 +31,7 @@ my @searches = (
             write_csv($data);
             return $data;
         },
-        run => 1,
+        run => 0,
     },
 
     # bids from provider (id 538083)
@@ -66,13 +66,15 @@ my @searches = (
 
     # find gov contracts involving personal contractors
     {
-        description => 'Pesquisar contratos',
+        description => 'contracts involving personal contractors',
         search      => {
             module => 'contratos',
             params => { tipo_pessoa => 'PF' }
         },
         cb => sub ( $data ) {
-            $data->{results}->each( sub { p $_ } );
+
+            #$data->{results}->each( sub { p $_ } );
+            write_csv($data);
             return $data;
         },
         run => 0,
@@ -81,7 +83,7 @@ my @searches = (
 
     # find gov contracts involving personal contractors
     {
-        description => 'Pesquisar contratos',
+        description => 'personal contracts during 2020 and value up to 50.000 BRL',
         search      => {
             module => 'contratos',
             params => {
@@ -103,17 +105,31 @@ my @searches = (
 
 sub do_search {
     my %values = @_;
-    my $ua     = Compras::UA->new( %{ $values{search} } );
+    say "Searching $values{description} ...";
+    my $ua = Compras::UA->new( %{ $values{search} } );
     return $values{cb}->( $ua->get_data );
 }
 
 sub run_all {
+    my $index = $ARGV[0];
+
+    if ( defined $index ) {
+        my $search = $searches[$index];
+        unless ( $search ) {
+            say "Can't find search data (index: $index) select 0 up to $#searches, options are";
+            for my $i ( 0..$#searches ) {
+                say "$i : $searches[$i]->{description}";
+            }
+            exit 1;
+        }
+        do_search(%$search);
+        exit 0;
+    }
+
     for my $search (@searches) {
-        next unless $search->{run};
         do_search(%$search);
     }
 }
 
 MAIN:
 run_all;
-
