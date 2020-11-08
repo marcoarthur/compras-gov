@@ -1,19 +1,21 @@
 #!/usr/bin/env perl
 use 5.028;
 use Mojo::Base -signatures;
+use Mojo::Log;
 use lib qw(./lib);
 use utf8;
 use Compras::UA;
 use DDP;
 use Text::CSV qw( csv );
-binmode( STDERR, ":encoding(UTF-8)" );
+binmode( STDOUT, ":encoding(UTF-8)" );
+my $log = Mojo::Log->new;
 
 sub write_csv( $data ) {
     my $res = $data->{results} or die "No results";
     my @lines;
     $res->each( sub { push @lines, $_->to_arrayref } );
     unshift @lines, $res->[0]->attributes_order;
-    csv( in => \@lines, out => \*STDERR );
+    csv( in => \@lines, out => \*STDOUT );
 }
 
 my @searches = (
@@ -105,7 +107,7 @@ my @searches = (
 
 sub do_search {
     my %values = @_;
-    say "Searching $values{description} ...";
+    $log->info( "Searching $values{description} ..." );
     my $ua = Compras::UA->new( %{ $values{search} } );
     return $values{cb}->( $ua->get_data );
 }
@@ -116,9 +118,9 @@ sub run_all {
     if ( defined $index ) {
         my $search = $searches[$index];
         unless ( $search ) {
-            say "Can't find search data (index: $index) select 0 up to $#searches, options are";
+            $log->info("Can't find search data (index: $index) select 0 up to $#searches, options are");
             for my $i ( 0..$#searches ) {
-                say "$i : $searches[$i]->{description}";
+                $log->info("$i : $searches[$i]->{description}");
             }
             exit 1;
         }
