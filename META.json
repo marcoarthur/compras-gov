@@ -48,8 +48,10 @@
             "Mojo::Exception" : "0",
             "Mojo::JSON::Pointer" : "0",
             "Mojo::Loader" : "0",
+            "Mojo::Log" : "0",
             "Mojo::Template" : "0",
             "Mojo::UserAgent" : "0",
+            "Text::CSV" : "0",
             "perl" : "5.028"
          }
       },
