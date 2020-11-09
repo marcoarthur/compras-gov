@@ -122,7 +122,7 @@ To install it you will need perl (5.028 or later) and L<cpanm|https://metacpan.o
 
     $ git clone https://github.com/marcoarthur/compras-gov.git
     $ cd compras-gov
-    $ cpanm --install-deps .
+    $ cpanm --installdeps .
 
 We provide a script to try out some searches
 
