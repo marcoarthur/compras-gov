@@ -17,7 +17,8 @@ sub write_csv( $data ) {
     my $res = $data->{results}->flatten or die "No results";
     my @lines;
     $res->each( sub { push @lines, $_->to_arrayref } );
-    unshift @lines, $res->[0]->attributes_order if $_->$_isa('Compras::Model');
+    $_ = $res->[0];
+    unshift @lines, $_->attributes_order if $_->$_isa('Compras::Model');
     die "No results" unless scalar @lines;
     csv( in => \@lines, out => \*STDOUT );
 }
