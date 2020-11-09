@@ -173,9 +173,10 @@ So the search bellow represents and returns all institutions named 'TRIBUNAL' th
         warn "Error $e";
     }
 
-The results are a collection of Models determined by the C<module> parameter.
+
+The results are a collection of Models determined by the module parameter.
 Models holds the data that is listed in the documentation for, eg, the above
-search returns M<Compras::Model::Institutions> that contains accessors for
+search returns Compras::Model::Institutions that contains accessors for
 each listed response the server documents, eg in this case:
 
     $ele->$_ for qw( ativo codigo codigo_siorg codigo_tipo_adm codigo_tipo_esfera codigo_tipo_poder nome)

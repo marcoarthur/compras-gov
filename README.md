@@ -55,7 +55,7 @@ So the search bellow represents and returns all institutions named 'TRIBUNAL' th
         warn "Error $e";
     }
 
-The results are a collection of Models determined by the `module` parameter.
+The results are a collection of Models determined by the module parameter.
 Models holds the data that is listed in the documentation for, eg, the above
 search returns Compras::Model::Institutions that contains accessors for
 each listed response the server documents, eg in this case:
@@ -91,11 +91,3 @@ it under the same terms as Perl itself.
 # AUTHOR
 
 Marco Arthur <arthurpbs@gmail.com>
-
-# POD ERRORS
-
-Hey! **The above document had some coding errors, which are explained below:**
-
-- Around line 176:
-
-    Deleting unknown formatting code M<>
