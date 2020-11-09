@@ -22,6 +22,11 @@ sub write_csv( $data ) {
     csv( in => \@lines, out => \*STDOUT );
 }
 
+my $default_cb = sub ( $data ) {
+    write_csv($data);
+    return $data;
+};
+
 my @searches = (
 
     # all providers from Ubatuba city ( id 72095 )
@@ -31,12 +36,7 @@ my @searches = (
             module => 'fornecedores',
             params => { id_municipio => 72095 }
         },
-        cb => sub ( $data ) {
-
-            #$data->{results}->each( sub{ p $_ } );
-            write_csv($data);
-            return $data;
-        },
+        cb  => $default_cb,
         run => 0,
     },
 
@@ -47,7 +47,7 @@ my @searches = (
             module => 'licitacoes',
             params => { id_fornecedor => 538083 }
         },
-        cb  => sub ( $data ) { p $data; return $data },
+        cb  => $default_cb,
         run => 0,
 
     },
@@ -63,7 +63,12 @@ my @searches = (
             my $bids = $data->{results}->map(
                 sub {
                     Compras::UA->new(
-                        { module => 'licitacoes', params => { id_fornecedor => $_->id }, tout => 2 } );
+                        {
+                            module => 'licitacoes',
+                            params => { id_fornecedor => $_->id },
+                            tout   => 2
+                        }
+                    );
                 }
             )->map(
                 sub {
@@ -75,7 +80,7 @@ my @searches = (
             );
 
             $bids->flatten;
-            write_csv({results => $bids });
+            write_csv( { results => $bids } );
             return $data;
         },
         run => 0,
@@ -88,10 +93,7 @@ my @searches = (
             module => 'contratos',
             params => { tipo_pessoa => 'PF' }
         },
-        cb => sub ( $data ) {
-            write_csv($data);
-            return $data;
-        },
+        cb  => $default_cb,
         run => 0,
 
     },
@@ -107,12 +109,7 @@ my @searches = (
                 valor_inicial_min        => 50000
             }
         },
-        cb => sub ( $data ) {
-
-            #$data->{results}->each( sub{ p $_ } );
-            write_csv($data);
-            return $data;
-        },
+        cb  => $default_cb,
         run => 0,
 
     },
