@@ -42,7 +42,6 @@
       },
       "runtime" : {
          "requires" : {
-            "DDP" : "0",
             "Mojo::Base" : "0",
             "Mojo::Collection" : "0",
             "Mojo::Exception" : "0",
@@ -51,6 +50,8 @@
             "Mojo::Log" : "0",
             "Mojo::Template" : "0",
             "Mojo::UserAgent" : "0",
+            "Safe::Isa" : "0",
+            "Syntax::Keyword::Try" : "0",
             "Text::CSV" : "0",
             "perl" : "5.028"
          }
