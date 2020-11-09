@@ -4,6 +4,7 @@ use Mojo::Exception qw(raise);
 use Mojo::JSON::Pointer;
 use Mojo::Collection;
 use Mojo::Loader qw(load_class);
+use Mojo::Log;
 use utf8;
 
 has tx             => sub { die "Required attrib tx" };
@@ -24,6 +25,8 @@ has models_table => sub {
         contratos    => 'Compras::Model::Contracts',
     }
 };
+
+has _log => sub { Mojo::Log->new };
 
 sub _determine_model ( $self, $type ) {
     my $class = $self->models_table->{$type};
@@ -60,7 +63,9 @@ sub _validate_json ( $self, $json_obj ) {
     raise "Compras::Exception", "Server results are not a list: $results"
       unless ref $results eq 'ARRAY';
     my $collection = Mojo::Collection->new(@$results)->map( sub { $class->new->from_hash($_) } );
+    my $total = $collection->size;
     $parsed->{results} = $collection;
+
     return $parsed;
 }
 

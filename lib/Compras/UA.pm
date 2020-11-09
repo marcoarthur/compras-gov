@@ -3,6 +3,7 @@ use 5.028;
 use Mojo::Base -base, -signatures, -async_await;
 use Mojo::Template;
 use Mojo::UserAgent;
+use Mojo::Log;
 use Compras::RSet;
 our $VERSION = "0.01";
 use constant TIMEOUT => 180;
@@ -24,6 +25,8 @@ has _data  => sub {
 EOT
 };
 
+has _log => sub { Mojo::Log->new };
+
 sub url( $self ) {
     return $self->_templ->vars(1)
       ->render( $self->_data, { map { $_ => $self->$_ } qw( base module method format params ) } );
@@ -38,15 +41,39 @@ sub get_data( $self ) {
     my $cached = $self->_hist->{$url};
     return $cached if $cached;
 
-    $self->get_data_p
-    ->then(
+    $self->_log->info("Getting data from $url");
+    my $rs;
+
+    $self->get_data_p->then(
         sub ($tx) {
-	    my $rs = Compras::RSet->new( tx => $tx );
-	    $res = $rs->parse;
-       	} )
-    ->catch( sub ($err) {
-	    say "Error: $err with url: $url";
-    } )->wait;
+            $rs  = Compras::RSet->new( tx => $tx );
+            $res = $rs->parse;
+        }
+    )->catch(
+        sub ($err) {
+            $self->_log->fatal("Error: $err with url: $url");
+        }
+    )->wait;
+
+    my $total = $res->{count};
+
+  RETRIEVE:
+    my $amount = $res->{results}->size;
+    if ( $total > $amount ) {
+        $self->_log->info("Retrivied $amount records from $total total");
+        $self->params->{offset} = $amount;
+        $self->get_data_p->then(
+            sub ($tx) {
+                $rs = Compras::RSet->new( tx => $tx );
+                push @{ $res->{results} }, @{ $rs->parse->{results} };
+            }
+        )->catch(
+            sub ($err) {
+                $self->_log->fatal("Error: $err with url: $url");
+            }
+        )->wait;
+    }
+    goto RETRIEVE if $total > $res->{results}->size;
 
     $self->_hist->{$url} = $res;
     return $res;
