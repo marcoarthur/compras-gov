@@ -16,7 +16,7 @@ has method => sub { shift->module or die "method is required" };
 has format => sub { 'json' };
 has params => sub { +{} };
 has tout   => sub { TIMEOUT };
-has _ua    => sub { Mojo::UserAgent->new->inactivity_timeout(shift->tout) };
+has _ua    => sub { Mojo::UserAgent->new->inactivity_timeout( shift->tout ) };
 has _templ => sub { Mojo::Template->new };
 has _hist  => sub { +{} };
 has _data  => sub {
@@ -47,7 +47,7 @@ sub get_data( $self ) {
     return $cached if $cached;
 
     $self->_log->info("Getting data from $url");
-    my ($rs, $e);
+    my ( $rs, $e );
 
     $self->get_data_p->then(
         sub ($tx) {
@@ -57,11 +57,15 @@ sub get_data( $self ) {
     )->catch(
         sub ($err) {
             $self->_log->fatal("Error: $err with url: $url");
-	    $e = $err;
+            $e = $err;
         }
     )->wait;
 
-    raise "Compras::Exception", "Error: $e check your internet connection" if $e;
+    if ($e) {
+        raise "Compras::Exception", "Check your internet connection: $e";
+        return;
+    }
+
     # After the first request: check if we need more request to fullfill
     # records missing. Make concurrent calls to receive the rest of records.
     # (Serve response with maximum 500 records per request)

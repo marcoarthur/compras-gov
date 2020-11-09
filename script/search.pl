@@ -8,14 +8,17 @@ use lib qw(./lib);
 use utf8;
 use Compras::UA;
 use Text::CSV qw( csv );
+use Safe::Isa;
+
 binmode( STDOUT, ":encoding(UTF-8)" );
 my $log = Mojo::Log->new;
 
 sub write_csv( $data ) {
-    my $res = $data->{results} or die "No results";
+    my $res = $data->{results}->flatten or die "No results";
     my @lines;
     $res->each( sub { push @lines, $_->to_arrayref } );
-    unshift @lines, $res->[0]->attributes_order;
+    unshift @lines, $res->[0]->attributes_order if $_->$_isa('Compras::Model');
+    die "No results" unless scalar @lines;
     csv( in => \@lines, out => \*STDOUT );
 }
 
@@ -60,7 +63,7 @@ my @searches = (
             my $bids = $data->{results}->map(
                 sub {
                     Compras::UA->new(
-                        { module => 'licitacoes', params => { id_fornecedor => $_->id }, tout => 5 } );
+                        { module => 'licitacoes', params => { id_fornecedor => $_->id }, tout => 2 } );
                 }
             )->map(
                 sub {
