@@ -5,8 +5,10 @@ use Mojo::Template;
 use Mojo::UserAgent;
 use Mojo::Log;
 use Compras::RSet;
+use Mojo::Exception qw(raise);
 our $VERSION = "0.01";
-use constant TIMEOUT => 180;
+use constant TIMEOUT     => 180;
+use constant MAX_RECORDS => 500;
 
 has base   => sub { 'http://compras.dados.gov.br' };
 has module => sub { die "module is required" };
@@ -52,28 +54,41 @@ sub get_data( $self ) {
     )->catch(
         sub ($err) {
             $self->_log->fatal("Error: $err with url: $url");
+            raise "Compras::Exception", "Error $err , check internet connection";
         }
     )->wait;
 
-    my $total = $res->{count};
-
-  RETRIEVE:
+    my $total  = $res->{count};
     my $amount = $res->{results}->size;
-    if ( $total > $amount ) {
-        $self->_log->info("Retrivied $amount records from $total total");
+    my @promises;
+
+    while ( $total > $amount ) {
         $self->params->{offset} = $amount;
-        $self->get_data_p->then(
+        my $url = $self->url;
+        push @promises, $self->get_data_p->then(
             sub ($tx) {
-                $rs = Compras::RSet->new( tx => $tx );
-                push @{ $res->{results} }, @{ $rs->parse->{results} };
+                $rs->tx($tx);
+                my $partial = $rs->parse->{results};
+                push @{ $res->{results} }, @{$partial};
+                my $size = $partial->size;
+                $self->_log->info("Retrivied $size records from $total total");
             }
         )->catch(
             sub ($err) {
-                $self->_log->fatal("Error: $err with url: $url");
+                $self->_log->fatal( "Error: $err with url: " . $url );
+            }
+        );
+        $amount += MAX_RECORDS;
+    }
+
+    # still have records to resolve: fetch then all
+    if (@promises) {
+        Mojo::Promise->all_settled(@promises)->then(
+            sub (@p) {
+                $self->_log->info( "Total " . $res->{results}->size . " records retrieved" );
             }
         )->wait;
     }
-    goto RETRIEVE if $total > $res->{results}->size;
 
     $self->_hist->{$url} = $res;
     return $res;
