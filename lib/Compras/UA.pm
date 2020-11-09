@@ -34,10 +34,12 @@ sub url( $self ) {
       ->render( $self->_data, { map { $_ => $self->$_ } qw( base module method format params ) } );
 }
 
+# non blocking
 async sub get_data_p( $self ) {
     return $self->_ua->get_p( $self->url );
 }
 
+# blocking
 sub get_data( $self ) {
     my ( $res, $format, $url ) = ( undef, $self->format, $self->url );
     my $cached = $self->_hist->{$url};
@@ -58,6 +60,9 @@ sub get_data( $self ) {
         }
     )->wait;
 
+    # After the first request: check if we need more request to fullfill
+    # records missing. Make concurrent calls to receive the rest of records.
+    # (Serve response with maximum 500 records per request)
     my $total  = $res->{count};
     my $amount = $res->{results}->size;
     my @promises;
@@ -81,7 +86,7 @@ sub get_data( $self ) {
         $amount += MAX_RECORDS;
     }
 
-    # still have records to resolve: fetch then all
+    # has records to resolve: fetch then all
     if (@promises) {
         Mojo::Promise->all_settled(@promises)->then(
             sub (@p) {
@@ -90,6 +95,7 @@ sub get_data( $self ) {
         )->wait;
     }
 
+    # save in history
     $self->_hist->{$url} = $res;
     return $res;
 }
