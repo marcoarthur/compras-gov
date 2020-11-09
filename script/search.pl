@@ -2,6 +2,8 @@
 use 5.028;
 use Mojo::Base -signatures;
 use Mojo::Log;
+use Mojo::Collection;
+use Syntax::Keyword::Try;
 use lib qw(./lib);
 use utf8;
 use Compras::UA;
@@ -50,18 +52,29 @@ my @searches = (
 
     # find bids from ubatuba providers
     {
-        description => 'bids from ubatuba providers',
+        description => 'bids from Ubatuba-SP providers',
         search      => {
             module => 'fornecedores',
             params => { id_municipio => 72095 }
         },
         cb => sub ( $data ) {
-            my @providers_id = map { $_->{id} } @{ $data->{_embedded}->{fornecedores} };
-            my @uas          = map {
-                Compras::UA->new( { module => 'licitacoes', params => { id_fornecedor => $_ } } )
-            } @providers_id;
+            my $bids = $data->{results}->map(
+                sub {
+                    Compras::UA->new(
+                        { module => 'licitacoes', params => { id_fornecedor => $_->id } } );
+                }
+            )->map(
+                sub {
+                    try { return $_->get_data->{results} } catch ($e) {
+                        warn "Error: $e";
+                        return [];
+                    }
+                }
+            );
 
-            p $_->get_data for @uas;
+            $bids->flatten;
+            write_csv({results => $bids });
+            return $data;
         },
         run => 0,
     },
@@ -74,8 +87,6 @@ my @searches = (
             params => { tipo_pessoa => 'PF' }
         },
         cb => sub ( $data ) {
-
-            #$data->{results}->each( sub { p $_ } );
             write_csv($data);
             return $data;
         },
@@ -107,7 +118,7 @@ my @searches = (
 
 sub do_search {
     my %values = @_;
-    $log->info( "Searching $values{description} ..." );
+    $log->info("Searching $values{description} ...");
     my $ua = Compras::UA->new( %{ $values{search} } );
     return $values{cb}->( $ua->get_data );
 }
@@ -117,9 +128,10 @@ sub run_all {
 
     if ( defined $index ) {
         my $search = $searches[$index];
-        unless ( $search ) {
-            $log->info("Can't find search data (index: $index) select 0 up to $#searches, options are");
-            for my $i ( 0..$#searches ) {
+        unless ($search) {
+            $log->info(
+                "Can't find search data (index: $index) select 0 up to $#searches, options are");
+            for my $i ( 0 .. $#searches ) {
                 $log->info("$i : $searches[$i]->{description}");
             }
             exit 1;
