@@ -42,6 +42,7 @@
       },
       "runtime" : {
          "requires" : {
+            "Future::AsyncAwait" : "0",
             "Mojo::Base" : "0",
             "Mojo::Collection" : "0",
             "Mojo::Exception" : "0",

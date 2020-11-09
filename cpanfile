@@ -10,6 +10,7 @@ requires 'Safe::Isa';
 requires 'Syntax::Keyword::Try';
 requires 'Text::CSV';
 requires 'perl', '5.028';
+requires 'Future::AsyncAwait';
 
 on configure => sub {
     requires 'Module::Build::Tiny', '0.035';
