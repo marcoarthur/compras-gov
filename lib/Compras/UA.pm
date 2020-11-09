@@ -116,6 +116,18 @@ __END__
 
 Compras::UA - Client API to Brazil bid system (http://compras.dados.gov.br/)
 
+=head1 INSTALL
+
+To install it you will need perl (5.028 or later) and L<cpanm|https://metacpan.org/pod/distribution/App-cpanminus/bin/cpanm>
+
+    $ git clone https://github.com/marcoarthur/compras-gov.git
+    $ cd compras-gov
+    $ cpanm --install-deps .
+
+We provide a script to try out some searches
+
+    $ ./script/search.pl [1-4] # each number is a search 
+
 =head1 SYNOPSIS
 
     use Compras::UA;
