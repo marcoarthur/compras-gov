@@ -7,7 +7,6 @@ use Syntax::Keyword::Try;
 use lib qw(./lib);
 use utf8;
 use Compras::UA;
-use DDP;
 use Text::CSV qw( csv );
 binmode( STDOUT, ":encoding(UTF-8)" );
 my $log = Mojo::Log->new;
@@ -61,7 +60,7 @@ my @searches = (
             my $bids = $data->{results}->map(
                 sub {
                     Compras::UA->new(
-                        { module => 'licitacoes', params => { id_fornecedor => $_->id } } );
+                        { module => 'licitacoes', params => { id_fornecedor => $_->id }, tout => 5 } );
                 }
             )->map(
                 sub {
