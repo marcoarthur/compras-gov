@@ -7,7 +7,7 @@ use Mojo::Log;
 use Compras::RSet;
 use Mojo::Exception qw(raise);
 our $VERSION = "0.01";
-use constant TIMEOUT     => 180;
+use constant TIMEOUT     => 120;
 use constant MAX_RECORDS => 500;
 
 has base   => sub { 'http://compras.dados.gov.br' };
