@@ -186,9 +186,9 @@ You can get a list on Server doc or looking at the Models classes.
 =head2 get_data
 
    my $ret = $ua->get_data;
-   $ref->{results}->each( sub ($e, $n) { say join ' ', @{ $e->to_arrayref} } );
+   $ret->{results}->each( sub ($e, $n) { say join ' ', @{ $e->to_arrayref} } );
 
-Returns hash ref containing data of the search. It runs many searches if the results cannot be completed
+Returns hash reference containing data of the search. It runs many searches if the results cannot be completed
 in only one requests. Server handles at most 500 records per request. Those will
 be concurrent requests. Under C<results> key is the array reference with the
 data.
