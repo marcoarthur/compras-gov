@@ -9,6 +9,7 @@ use utf8;
 use Compras::UA;
 use Text::CSV qw( csv );
 use Safe::Isa;
+use DDP;
 
 binmode( STDOUT, ":encoding(UTF-8)" );
 my $log = Mojo::Log->new;
@@ -139,7 +140,7 @@ my @searches = (
             params  => { id => 120041 },
             req_def => 1,
         },
-        cp => $default_cb,
+        cb => sub ($data) { p $data; return $data },
     }
 );
 
