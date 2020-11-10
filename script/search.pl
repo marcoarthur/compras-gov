@@ -146,7 +146,7 @@ my @searches = (
 sub do_search {
     my %values = @_;
     $log->info("Searching $values{description} ...");
-    my $ua = Compras::UA->new( %{ $values{search} } );
+    my $ua = Compras::UA->new( %{ $values{search} } , tout => 380 );
     return $values{cb}->( $ua->get_data );
 }
 
