@@ -70,7 +70,6 @@ sub _validate_json ( $self, $json_obj ) {
     raise "Compras::Exception", "Server results are not a list: $results"
       unless ref $results eq 'ARRAY';
     my $collection = Mojo::Collection->new(@$results)->map( sub { $class->new->from_hash($_) } );
-    my $total = $collection->size;
     $parsed->{results} = $collection;
 
     return $parsed;
