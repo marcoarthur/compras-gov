@@ -19,7 +19,7 @@ has tout   => sub { TIMEOUT };
 has _ua    => sub { Mojo::UserAgent->new->inactivity_timeout( shift->tout ) };
 has _templ => sub { Mojo::Template->new };
 has _hist  => sub { +{} };
-has _data  => sub {
+has _req   => sub {
     <<'EOT';
 	% my $url = qq{$base/$module/v1/$method.$format};
 	% my $params = join "&", map { qq($_=$params->{$_}) } keys %$params;
@@ -28,11 +28,26 @@ has _data  => sub {
 EOT
 };
 
-has _log => sub { Mojo::Log->new };
+# request to entities definition. That follows other url scheme
+has _dreq => sub {
+    <<'EOT';
+	% my $url = qq{$base/$module/doc/$method/$id.$format};
+	<%= $url =%>
+EOT
+};
+has req_def => sub { undef };
+has _log    => sub { Mojo::Log->new };
 
-sub url( $self ) {
-    return $self->_templ->vars(1)
-      ->render( $self->_data, { map { $_ => $self->$_ } qw( base module method format params ) } );
+sub url ( $self ) {
+    my $params =  { map { $_ => $self->$_ } qw( base module method format params ) };
+    return $self->_templ->vars(1)->render( $self->_req, $params ) unless $self->req_def;
+
+    use DDP;
+    delete $params->{params};
+    $params->{id} = $self->params->{id}
+      or raise "Compras::Exception", "Missing id in parameters";
+    p $params;
+    return $self->_templ->vars(1)->render( $self->_dreq, $params );
 }
 
 # non blocking

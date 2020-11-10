@@ -99,9 +99,9 @@ my @searches = (
 
     },
 
-    # find gov contracts involving personal contractors
+    # find gov contracts involving no licitation of contractors during 2020 up to 50.000
     {
-        description => 'personal contracts during 2020 and value up to 50.000 BRL',
+        description => 'no licitation contracts during 2020 and value up to 50.000 BRL',
         search      => {
             module => 'contratos',
             params => {
@@ -114,6 +114,33 @@ my @searches = (
         run => 0,
 
     },
+
+    # find gov contracts during 2020 up to 100.000
+    {
+        description => 'contracts during 2020,  value up to 100.000 BRL',
+        search      => {
+            module => 'contratos',
+            params => {
+                data_inicio_vigencia_min => '2020-01-01',
+                valor_inicial_min        => 2 * 50000
+            }
+        },
+        cb  => $default_cb,
+        run => 0,
+
+    },
+
+    # find uasg descriptions
+    {
+        description => 'find uasg description',
+        search      => {
+            module  => 'licitacoes',
+            method  => 'uasg',
+            params  => { id => 120041 },
+            req_def => 1,
+        },
+        cp => $default_cb,
+    }
 );
 
 sub do_search {

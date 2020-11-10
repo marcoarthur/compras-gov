@@ -71,8 +71,9 @@ sub _validate_json ( $self, $json_obj ) {
 
 # validate http request result
 sub _validate( $self ) {
-    if ( $self->tx->res->code != 200 ) {
-        raise 'Compras::Exception', "Invalid Server Response";
+    my $code = $self->tx->res->code;
+    if ( $code != 200 ) {
+        raise 'Compras::Exception', "Invalid Server Response: $code";
     }
     return 1;
 }
