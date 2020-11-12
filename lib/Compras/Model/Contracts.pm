@@ -28,19 +28,25 @@ has attributes => sub {
 
 sub to_hash( $self ) {
     my $hash = $self->SUPER::to_hash;
-    $hash->{nome_fornecedor} = $self->nome_fornecedor;
+    my @extra = qw(nome_fornecedor nome_uasg);
+    @{ $hash }{ @extra } = map { $self->$_ } @extra;
     return $hash;
 }
 
 sub attributes_order( $self ) {
     my $attrs = $self->SUPER::attributes_order;
-    push @$attrs, 'nome_fornecedor';
+    my @extra = qw(nome_fornecedor nome_uasg);
+    push @$attrs, @extra;
     my @sorted = sort @$attrs;
     return \@sorted;
 }
 
 sub nome_fornecedor( $self ) {
-    $self->_other->{_links}{fornecedor}{title};
+    $self->_other->{_links}->{fornecedor}->{title};
+}
+
+sub nome_uasg( $self ) {
+    $self->_other->{_links}->{uasg}->{title};
 }
 
 1;
