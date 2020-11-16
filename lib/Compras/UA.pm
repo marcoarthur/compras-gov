@@ -28,6 +28,8 @@ has _req   => sub {
 EOT
 };
 
+has log_level => sub { 'debug' };
+
 # request to entities definition. That follows other url scheme
 has _dreq => sub {
     <<'EOT';
@@ -36,7 +38,7 @@ has _dreq => sub {
 EOT
 };
 has req_def => sub { undef };
-has _log    => sub { Mojo::Log->new };
+has _log    => sub { Mojo::Log->new( level => shift->log_level ) };
 
 sub url ( $self ) {
     my $params = { map { $_ => $self->$_ } qw( base module method format params ) };
@@ -130,10 +132,10 @@ sub get_data( $self ) {
     return $res;
 }
 
-sub increase_timeout( $self, $inc ) {
+sub increase_timeout ( $self, $inc ) {
     my $timeout = $self->tout;
-    $self->tout($timeout + $inc);
-    $self->_ua->inactivity_timeout($self->tout);
+    $self->tout( $timeout + $inc );
+    $self->_ua->inactivity_timeout( $self->tout );
 }
 
 1;
