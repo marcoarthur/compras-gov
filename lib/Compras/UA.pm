@@ -95,10 +95,13 @@ sub get_data( $self ) {
     my $total  = $res->{count};
     my $amount = $res->{results}->size;
     my @promises;
+    my $timeout = $self->tout;
 
     while ( $total > $amount ) {
         $self->params->{offset} = $amount;
         my $url = $self->url;
+        $timeout += 5; # increment 5 sec to the timeout
+        $self->_ua->inactivity_timeout($timeout);
         push @promises, $self->get_data_p->then(
             sub ($tx) {
                 $rs->tx($tx);
