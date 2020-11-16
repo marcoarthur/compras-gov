@@ -49,8 +49,15 @@ sub _validate_json ( $self, $json_obj ) {
         $parsed->{$key} = $val;
     }
 
-    # treat ''_embedded'' pointer specially (it holds the actual interesting data).
+    # not a data collection: treat it as data definition
+    # and assume model "as is".
     $val = $pointer->get('/_embedded');
+    if ( ! $val ) { 
+        $parsed->{results} = $json_obj;
+        return $parsed;
+    }
+
+    # otherwise:  is a data collection and we parse using models
     my @types = keys %$val;
     if ( @types > 1 ) {
         raise "Compras::Exception", "More than one type: @types";
@@ -63,7 +70,6 @@ sub _validate_json ( $self, $json_obj ) {
     raise "Compras::Exception", "Server results are not a list: $results"
       unless ref $results eq 'ARRAY';
     my $collection = Mojo::Collection->new(@$results)->map( sub { $class->new->from_hash($_) } );
-    my $total = $collection->size;
     $parsed->{results} = $collection;
 
     return $parsed;
@@ -71,8 +77,9 @@ sub _validate_json ( $self, $json_obj ) {
 
 # validate http request result
 sub _validate( $self ) {
-    if ( $self->tx->res->code != 200 ) {
-        raise 'Compras::Exception', "Invalid Server Response";
+    my $code = $self->tx->res->code;
+    if ( $code != 200 ) {
+        raise 'Compras::Exception', "Invalid Server Response: $code";
     }
     return 1;
 }

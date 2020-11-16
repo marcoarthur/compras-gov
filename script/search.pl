@@ -2,13 +2,13 @@
 use 5.028;
 use Mojo::Base -signatures;
 use Mojo::Log;
-use Mojo::Collection;
 use Syntax::Keyword::Try;
 use lib qw(./lib);
 use utf8;
 use Compras::UA;
 use Text::CSV qw( csv );
 use Safe::Isa;
+use DDP;
 
 binmode( STDOUT, ":encoding(UTF-8)" );
 my $log = Mojo::Log->new;
@@ -99,9 +99,9 @@ my @searches = (
 
     },
 
-    # find gov contracts involving personal contractors
+    # find gov contracts involving no licitation of contractors during 2020 up to 50.000
     {
-        description => 'personal contracts during 2020 and value up to 50.000 BRL',
+        description => 'no licitation contracts during 2020 and value up to 50.000 BRL',
         search      => {
             module => 'contratos',
             params => {
@@ -114,12 +114,39 @@ my @searches = (
         run => 0,
 
     },
+
+    # find gov contracts during 2020 up to 100.000
+    {
+        description => 'contracts during 2020,  value up to 100.000 BRL',
+        search      => {
+            module => 'contratos',
+            params => {
+                data_inicio_vigencia_min => '2020-01-01',
+                valor_inicial_min        => 2 * 50000
+            }
+        },
+        cb  => $default_cb,
+        run => 0,
+
+    },
+
+    # find uasg descriptions
+    {
+        description => 'find uasg description',
+        search      => {
+            module  => 'licitacoes',
+            method  => 'uasg',
+            params  => { id => 200015 },
+            req_def => 1,
+        },
+        cb => sub ($data) { p $data; return $data },
+    }
 );
 
 sub do_search {
     my %values = @_;
     $log->info("Searching $values{description} ...");
-    my $ua = Compras::UA->new( %{ $values{search} } );
+    my $ua = Compras::UA->new( %{ $values{search} } , tout => 380 );
     return $values{cb}->( $ua->get_data );
 }
 

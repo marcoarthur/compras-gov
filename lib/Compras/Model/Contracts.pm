@@ -1,5 +1,5 @@
 package Compras::Model::Contracts;
-use Mojo::Base 'Compras::Model';
+use Mojo::Base 'Compras::Model', -signatures;
 use utf8;
 
 has attributes => sub {
@@ -25,5 +25,28 @@ has attributes => sub {
         valor_inicial => 'Valor inicial do contrato.',
     }
 };
+
+sub to_hash( $self ) {
+    my $hash = $self->SUPER::to_hash;
+    my @extra = qw(nome_fornecedor nome_uasg);
+    @{ $hash }{ @extra } = map { $self->$_ } @extra;
+    return $hash;
+}
+
+sub attributes_order( $self ) {
+    my $attrs = $self->SUPER::attributes_order;
+    my @extra = qw(nome_fornecedor nome_uasg);
+    push @$attrs, @extra;
+    my @sorted = sort @$attrs;
+    return \@sorted;
+}
+
+sub nome_fornecedor( $self ) {
+    $self->_other->{_links}->{fornecedor}->{title};
+}
+
+sub nome_uasg( $self ) {
+    $self->_other->{_links}->{uasg}->{title};
+}
 
 1;
