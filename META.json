@@ -75,7 +75,7 @@
          "web" : "https://github.com/marcoarthur/compras-gov"
       }
    },
-   "version" : "0.01",
+   "version" : "0.02",
    "x_serialization_backend" : "JSON::PP version 4.05",
    "x_static_install" : 1
 }

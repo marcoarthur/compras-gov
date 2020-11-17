@@ -1,6 +1,10 @@
 Revision history for Perl extension Compras-UA
 
 {{$NEXT}}
+
+0.02 2020-11-17T12:55:52Z
+    - improve logging
+    - new (raw/collection) models issue #4
     - fix critical dependency
 
 0.01 2020-11-09T20:50:23Z
