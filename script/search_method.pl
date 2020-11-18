@@ -11,6 +11,7 @@ binmode( STDOUT, ":encoding(UTF-8)" );
 use Compras::UA;
 
 our %ATTRS = (
+    licitacoes => { 
     uasg => [
         qw(
           cep cnpj ddd endereco fax id id_municipio id_orgao nome nome_mnemonico
@@ -20,8 +21,13 @@ our %ATTRS = (
           )
     ],
     modalidade_licitacao => [qw( codigo descricao )],
+    },
+    contratos => {
+        tipo_contrato => [ qw( codigo descricao ) ],
+    }
 );
 
+our $module;
 our $method;
 
 sub usage {
@@ -29,7 +35,7 @@ sub usage {
 
     warn "Error $err" if $err;
     warn <<'EOM';
-    ./scripts/search_method.pl --method meth id [id ...] > /tmp/out.csv
+    ./scripts/search_method.pl --module module --method meth id [id ...] > /tmp/out.csv
 
     Mandatory Args:
     --method : the method of the module 'licitacoes' we are requiring records.
@@ -44,12 +50,13 @@ EOM
 sub main {
     my @ids = @_;
     usage unless @ids;
-    usage unless $method;
+    usage unless $method or $module;
+    usage( "incorrect module or method\n" ) unless $ATTRS{$module}->{$method};
 
     my $uas = Mojo::Collection->new(
         map {
             Compras::UA->new(
-                module  => 'licitacoes',
+                module  => $module,
                 method  => $method,
                 params  => { id => $_ },
                 req_def => 1,
@@ -57,18 +64,19 @@ sub main {
         } @ids
     );
 
+
     my $results = $uas->map( sub ($ua) { $ua->get_data } )->map(
         sub ($data) {
-            [ map { $data->{results}->{$_} } $ATTRS{$method} ]
+            [ map { $data->{results}->{$_} } $ATTRS{$module}->{$method} ]
         }
     );
 
-    unshift @$results, $ATTRS{$method};
+    unshift @$results, $ATTRS{$module}->{$method};
 
     csv( in => $results->to_array, out => \*STDOUT );
     exit 0;
 }
 
 MAIN:
-GetOptions( "method=s" => \$method ) or usage($!);
+GetOptions( "method=s" => \$method, "module=s" => \$module ) or usage($!);
 main(@ARGV);

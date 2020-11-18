@@ -1,6 +1,7 @@
 Revision history for Perl extension Compras-UA
 
 {{$NEXT}}
+    - script accepts parameters to search different records by id
 
 0.02 2020-11-17T12:55:52Z
     - improve logging
