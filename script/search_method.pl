@@ -67,7 +67,7 @@ sub main {
 
     my $results = $uas->map( sub ($ua) { $ua->get_data } )->map(
         sub ($data) {
-            [ map { $data->{results}->{$_} } $ATTRS{$module}->{$method} ]
+            [ map { $data->{results}->{$_} } @{$ATTRS{$module}->{$method}} ]
         }
     );
 
