@@ -1,8 +1,8 @@
 use strict;
 use Test::More;
 use Mojo::Base -signatures;
-
-our $debug = 0;
+our $debug  = 0;
+our $TARGET = { 'Compras::Model::Materials' => 1, };
 
 use_ok $_ for qw(
   Compras::UA
@@ -23,31 +23,39 @@ sub basic_results_for_model ( $model, $data ) {
     note explain $res if $debug;
 }
 
+sub is_target( $model ) {
+    return defined $TARGET->{$model};
+}
+
+sub get_model_args {
+    return (
+        'Compras::Model::TradingFloors' => { module => 'pregoes', params => { co_uasg => 254448 } },
+        'Compras::Model::IRPS'          =>
+          { module => 'licitacoes', method => 'irps', params => { uasg => 153229 } },
+        'Compras::Model::Materials' => { module => 'materiais', params => { grupo => 88 } },
+    );
+}
+
 subtest 'Testing model Institution' => sub {
+    plan skip_all => 'not target' unless is_target('Compras::Model::Institutions');
     my $ua =
       build_ua( module => 'licitacoes', method => 'orgaos', params => { nome => 'turismo' } );
     my $url = $ua->url;
-
     is $url, 'http://compras.dados.gov.br/licitacoes/v1/orgaos.json?nome=turismo',
       "Url creation ok";
-    my $data = $ua->get_data;
-    isa_ok $data, 'HASH';
-    isa_ok $data->{results}, 'Mojo::Collection';
-    ok $data, 'data retrieve ok' or note explain $data;
+
+    basic_results_for_model('Compras::Model::Institutions');
 };
 
-subtest 'Testing model TradingFloors' => sub {
-
-    # co_uasg 254448 refers to INSTITUTO NAC. DE CONTROLE E QUALID. EM SAUDE
-    my $ua   = build_ua( module => 'pregoes', params => { co_uasg => 254448 } );
-    my $data = $ua->get_data;
-    basic_results_for_model( 'Compras::Model::TradingFloors', $data );
-};
-
-subtest 'Testing model IRPS' => sub {
-    my $ua   = build_ua( module => 'licitacoes', method => 'irps', params => { uasg => 153229 } );
-    my $data = $ua->get_data;
-    basic_results_for_model( 'Compras::Model::IRPS', $data );
-};
+my %models = get_model_args;
+for my $model ( keys %models ) {
+    subtest "Testing model $model" => sub {
+        plan skip_all => "$model not target" unless is_target($model);
+        my $ua   = build_ua( $models{$model} );
+        my $data = $ua->get_data;
+        basic_results_for_model( $model, $data );
+        note explain $data if $debug;
+    };
+}
 
 done_testing;
