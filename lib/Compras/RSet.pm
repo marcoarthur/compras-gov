@@ -25,6 +25,7 @@ has models_table => sub {
         contratos    => 'Compras::Model::Contracts',
         pregoes      => 'Compras::Model::TradingFloors',
         irps         => 'Compras::Model::IRPS',
+        materiais    => 'Compras::Model::Materials',
     }
 };
 
