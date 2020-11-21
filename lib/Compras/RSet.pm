@@ -23,6 +23,7 @@ has models_table => sub {
         licitacoes   => 'Compras::Model::Bids',
         orgaos       => 'Compras::Model::Institutions',
         contratos    => 'Compras::Model::Contracts',
+        pregoes      => 'Compras::Model::TradingFloors',
     }
 };
 
