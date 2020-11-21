@@ -26,6 +26,7 @@ has models_table => sub {
         pregoes      => 'Compras::Model::TradingFloors',
         irps         => 'Compras::Model::IRPS',
         materiais    => 'Compras::Model::Materials',
+        servicos     => 'Compras::Model::Services',
     }
 };
 
@@ -55,7 +56,7 @@ sub _validate_json ( $self, $json_obj ) {
     # not a data collection: treat it as data definition
     # and assume model "as is".
     $val = $pointer->get('/_embedded');
-    if ( ! $val ) { 
+    if ( !$val ) {
         $parsed->{results} = $json_obj;
         return $parsed;
     }
