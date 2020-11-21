@@ -1,8 +1,8 @@
 use strict;
 use Test::More;
 use Mojo::Base -signatures;
-our $debug  = 0;
-our $TARGET = { 'Compras::Model::Materials' => 1, };
+our $debug  = 1;
+our $TARGET = { 'Compras::Model::Services' => 1, };
 
 use_ok $_ for qw(
   Compras::UA
@@ -33,6 +33,7 @@ sub get_model_args {
         'Compras::Model::IRPS'          =>
           { module => 'licitacoes', method => 'irps', params => { uasg => 153229 } },
         'Compras::Model::Materials' => { module => 'materiais', params => { grupo => 88 } },
+        'Compras::Model::Services'  => { module => 'servicos',  params => { grupo => 542 } },
     );
 }
 
@@ -45,6 +46,19 @@ subtest 'Testing model Institution' => sub {
       "Url creation ok";
 
     basic_results_for_model('Compras::Model::Institutions');
+};
+
+subtest 'Testing Definition Models' => sub {
+    my $ua = build_ua(
+        module  => 'materiais',
+        method  => 'material',
+        params  => { id => 17663 },
+        req_def => 1
+    );
+    my $data = $ua->get_data;
+    ok $data->{results}, "has a result";
+    ok $data->{results}->{descricao}, "has de description";
+    note explain $data->{results} if $debug;
 };
 
 my %models = get_model_args;
