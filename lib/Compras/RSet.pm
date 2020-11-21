@@ -27,6 +27,7 @@ has models_table => sub {
         irps         => 'Compras::Model::IRPS',
         materiais    => 'Compras::Model::Materials',
         servicos     => 'Compras::Model::Services',
+        compras      => 'Compras::Model::NoPublicBidding',
     }
 };
 

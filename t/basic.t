@@ -2,7 +2,7 @@ use strict;
 use Test::More;
 use Mojo::Base -signatures;
 our $debug  = 1;
-our $TARGET = { 'Compras::Model::Services' => 1, };
+our $TARGET = { 'Compras::Model::NoPublicBidding' => 1, };
 
 use_ok $_ for qw(
   Compras::UA
@@ -32,8 +32,13 @@ sub get_model_args {
         'Compras::Model::TradingFloors' => { module => 'pregoes', params => { co_uasg => 254448 } },
         'Compras::Model::IRPS'          =>
           { module => 'licitacoes', method => 'irps', params => { uasg => 153229 } },
-        'Compras::Model::Materials' => { module => 'materiais', params => { grupo => 88 } },
-        'Compras::Model::Services'  => { module => 'servicos',  params => { grupo => 542 } },
+        'Compras::Model::Materials'       => { module => 'materiais', params => { grupo => 88 } },
+        'Compras::Model::Services'        => { module => 'servicos',  params => { grupo => 542 } },
+        'Compras::Model::NoPublicBidding' => {
+            module => 'compraSemLicitacao',
+            method => 'compras_slicitacao',
+            params => { dt_publicacao => '20190701' }
+        },
     );
 }
 
