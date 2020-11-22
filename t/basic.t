@@ -1,6 +1,7 @@
 use strict;
 use Test::More;
 use Mojo::Base -signatures;
+use Clone 'clone';
 our $debug  = 1;
 our $TARGET = { 'Compras::Model::NoPublicBidding' => 1, };
 
@@ -25,6 +26,10 @@ sub basic_results_for_model ( $model, $data ) {
 
 sub is_target( $model ) {
     return defined $TARGET->{$model};
+}
+
+sub apply_role ( $role, $collection ) {
+    $collection->each( sub { $_->with_roles($role) } );
 }
 
 sub get_model_args {
@@ -76,5 +81,20 @@ for my $model ( keys %models ) {
         note explain $data if $debug;
     };
 }
+
+subtest "Applying Role to Model" => sub {
+    my %models = get_model_args;
+    my $ua     = build_ua( $models{'Compras::Model::Services'} );
+    my $data   = $ua->get_data;
+    my $res    = $data->{results};
+    ok $res->size > 0, "Ok we have some results";
+    my $example = $res->[0];
+    my $attrs   = clone( $example->attributes );
+    apply_role( 'Compras::Model::Roles::ExtendedAttrs', $res );
+    $res->each( sub { $_->install_acessors_from_links } );
+    my $new_attrs = $example->attributes;
+    ok scalar(keys %$attrs) < scalar(keys %$new_attrs), "Have more attributes";
+    note explain $example if $debug;
+};
 
 done_testing;
