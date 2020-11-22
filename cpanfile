@@ -4,14 +4,17 @@ requires 'Hash::Flatten';
 requires 'Mojo::Base';
 requires 'Mojo::Collection';
 requires 'Mojo::Exception';
+requires 'Mojo::JSON';
 requires 'Mojo::JSON::Pointer';
 requires 'Mojo::Loader';
 requires 'Mojo::Log';
 requires 'Mojo::Template';
+requires 'Mojo::URL';
 requires 'Mojo::UserAgent';
 requires 'Safe::Isa';
 requires 'Syntax::Keyword::Try';
 requires 'Text::CSV';
+requires 'YAML';
 requires 'perl', '5.028';
 requires 'Future::AsyncAwait';
 
