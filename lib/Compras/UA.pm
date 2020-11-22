@@ -6,7 +6,7 @@ use Mojo::UserAgent;
 use Mojo::Log;
 use Compras::RSet;
 use Mojo::Exception qw(raise);
-our $VERSION = "0.03";
+our $VERSION = "0.04";
 use constant TIMEOUT     => 120;
 use constant MAX_RECORDS => 500;
 

@@ -49,14 +49,17 @@
             "Mojo::Base" : "0",
             "Mojo::Collection" : "0",
             "Mojo::Exception" : "0",
+            "Mojo::JSON" : "0",
             "Mojo::JSON::Pointer" : "0",
             "Mojo::Loader" : "0",
             "Mojo::Log" : "0",
             "Mojo::Template" : "0",
+            "Mojo::URL" : "0",
             "Mojo::UserAgent" : "0",
             "Safe::Isa" : "0",
             "Syntax::Keyword::Try" : "0",
             "Text::CSV" : "0",
+            "YAML" : "0",
             "perl" : "5.028"
          }
       },
@@ -79,7 +82,7 @@
          "web" : "https://github.com/marcoarthur/compras-gov"
       }
    },
-   "version" : "0.03",
+   "version" : "0.04",
    "x_serialization_backend" : "JSON::PP version 4.05",
    "x_static_install" : 1
 }

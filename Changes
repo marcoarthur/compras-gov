@@ -2,6 +2,11 @@ Revision history for Perl extension Compras-UA
 
 {{$NEXT}}
 
+0.04 2020-11-22T17:09:27Z
+    - add serializers to model issue #1
+    - a role to 'follow up links' in model
+    - improve tests
+
 0.03 2020-11-22T00:59:27Z
     - role to add extra attributes to models
     - add many more models
