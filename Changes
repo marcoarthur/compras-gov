@@ -1,6 +1,10 @@
 Revision history for Perl extension Compras-UA
 
 {{$NEXT}}
+
+0.03 2020-11-22T00:59:27Z
+    - role to add extra attributes to models
+    - add many more models
     - script accepts parameters to search different records by id
 
 0.02 2020-11-17T12:55:52Z
