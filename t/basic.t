@@ -6,7 +6,8 @@ our $debug  = 1;
 our $TARGET = {
 
     #'Compras::Model::NoPublicBidding' => 1,
-    'Compras::Model::Roles::ExpandLinks' => 1,
+    #'Compras::Model::Roles::ExpandLinks' => 1,
+    'Compras::Model::Roles::Serialize' => 1,
 };
 
 use_ok $_ for qw(
@@ -127,6 +128,24 @@ subtest "Applying Role ExpandLinks to Model" => sub {
         ok exists $href->{expanded_data}, "Retrieved successfully $link data";
         note explain $href->{expanded_data} if $debug;
     }
+};
+
+subtest "Applying Role to Serialize Model" => sub {
+    my $role  = 'Compras::Model::Roles::Serialize';
+    my $model = 'Compras::Model::Services';
+    plan skip_all => "Not a target $role" unless is_target($role);
+
+    my %models = get_model_args;
+    my $ua     = build_ua( $models{$model} );
+    my $data   = $ua->get_data;
+    my $res    = $data->{results};
+    ok $res->size > 0, "Ok we have some results";
+    my $example = $res->[0];
+    apply_role( $role, $res );
+    ok $example->does($role), "It does $role";
+    can_ok($example, qw/to_yaml to_json/ );
+    # $example->to_yaml;
+    # $example->to_json;
 };
 
 done_testing;
