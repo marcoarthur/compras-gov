@@ -3,9 +3,10 @@ use Test::More;
 use Mojo::Base -signatures;
 use Clone 'clone';
 our $debug  = 1;
-our $TARGET = { 
-  #'Compras::Model::NoPublicBidding' => 1,
-  'Compras::Model::Roles::ExpandLinks' => 1,
+our $TARGET = {
+
+    #'Compras::Model::NoPublicBidding' => 1,
+    'Compras::Model::Roles::ExpandLinks' => 1,
 };
 
 use_ok $_ for qw(
@@ -86,33 +87,46 @@ for my $model ( keys %models ) {
 }
 
 subtest "Applying Role to Model" => sub {
-    plan skip_all =>'Not role target' unless is_target('Compras::Model::Roles::ExtendedAttrs'); 
+    my $model = 'Compras::Model::Services';
+    my $role  = 'Compras::Model::Roles::ExtendedAttrs';
+    plan skip_all => "Not target $role" unless is_target($role);
     my %models = get_model_args;
-    my $ua     = build_ua( $models{'Compras::Model::Services'} );
+    my $ua     = build_ua( $models{$model} );
     my $data   = $ua->get_data;
     my $res    = $data->{results};
     ok $res->size > 0, "Ok we have some results";
     my $example = $res->[0];
     my $attrs   = clone( $example->attributes );
-    apply_role( 'Compras::Model::Roles::ExtendedAttrs', $res );
+    apply_role( $role, $res );
     $res->each( sub { $_->install_acessors_from_links } );
     my $new_attrs = $example->attributes;
-    ok scalar(keys %$attrs) < scalar(keys %$new_attrs), "Have more attributes";
+    ok scalar( keys %$attrs ) < scalar( keys %$new_attrs ), "Have more attributes";
     note explain $example if $debug;
 };
 
 subtest "Applying Role ExpandLinks to Model" => sub {
-    plan skip_all => 'Not role target' unless is_target('Compras::Model::Roles::ExpandLinks'); 
+    my $role  = 'Compras::Model::Roles::ExpandLinks';
+    my $model = 'Compras::Model::Materials';
+    plan skip_all => "Not a target $role" unless is_target($role);
+
     my %models = get_model_args;
-    my $ua     = build_ua( $models{'Compras::Model::Services'} );
+    my $ua     = build_ua( $models{$model} );
     my $data   = $ua->get_data;
     my $res    = $data->{results};
     ok $res->size > 0, "Ok we have some results";
     my $example = $res->[0];
-    apply_role( 'Compras::Model::Roles::ExpandLinks', $res );
+    apply_role( $role, $res );
+    $example->log( $ua->_log );    # pass ua logger
     $example->expand_links;
-    #ok $example->_other->{_links}
-    note explain $example if $debug;
+
+    # check under _links expanded data
+    my $links = $example->_other->{_links};
+    for my $link ( keys %$links ) {
+        next if $link eq "self"; # not applicable
+        my $href = $links->{$link};
+        ok exists $href->{expanded_data}, "Retrieved successfully $link data";
+        note explain $href->{expanded_data} if $debug;
+    }
 };
 
 done_testing;
