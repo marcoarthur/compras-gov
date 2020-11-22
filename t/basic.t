@@ -3,7 +3,10 @@ use Test::More;
 use Mojo::Base -signatures;
 use Clone 'clone';
 our $debug  = 1;
-our $TARGET = { 'Compras::Model::NoPublicBidding' => 1, };
+our $TARGET = { 
+  #'Compras::Model::NoPublicBidding' => 1,
+  'Compras::Model::Roles::ExpandLinks' => 1,
+};
 
 use_ok $_ for qw(
   Compras::UA
@@ -83,6 +86,7 @@ for my $model ( keys %models ) {
 }
 
 subtest "Applying Role to Model" => sub {
+    plan skip_all =>'Not role target' unless is_target('Compras::Model::Roles::ExtendedAttrs'); 
     my %models = get_model_args;
     my $ua     = build_ua( $models{'Compras::Model::Services'} );
     my $data   = $ua->get_data;
@@ -94,6 +98,20 @@ subtest "Applying Role to Model" => sub {
     $res->each( sub { $_->install_acessors_from_links } );
     my $new_attrs = $example->attributes;
     ok scalar(keys %$attrs) < scalar(keys %$new_attrs), "Have more attributes";
+    note explain $example if $debug;
+};
+
+subtest "Applying Role ExpandLinks to Model" => sub {
+    plan skip_all => 'Not role target' unless is_target('Compras::Model::Roles::ExpandLinks'); 
+    my %models = get_model_args;
+    my $ua     = build_ua( $models{'Compras::Model::Services'} );
+    my $data   = $ua->get_data;
+    my $res    = $data->{results};
+    ok $res->size > 0, "Ok we have some results";
+    my $example = $res->[0];
+    apply_role( 'Compras::Model::Roles::ExpandLinks', $res );
+    $example->expand_links;
+    #ok $example->_other->{_links}
     note explain $example if $debug;
 };
 
