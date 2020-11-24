@@ -6,8 +6,8 @@ our $debug  = 1;
 our $TARGET = {
 
     #'Compras::Model::NoPublicBidding' => 1,
-    #'Compras::Model::Roles::ExpandLinks' => 1,
-    'Compras::Model::Roles::Serialize' => 1,
+    'Compras::Model::Roles::ExpandLinks' => 1,
+    #'Compras::Model::Roles::Serialize' => 1,
 };
 
 use_ok $_ for qw(

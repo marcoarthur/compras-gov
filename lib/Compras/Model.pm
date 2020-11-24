@@ -37,4 +37,8 @@ sub attributes_order( $self ) {
     return \@sorted_attrs;
 }
 
+sub add_to_attrs ( $self, $attr, $description ) {
+    $self->attributes->{$attr} = $description;
+}
+
 1;
