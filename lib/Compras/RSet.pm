@@ -19,16 +19,17 @@ has json_structure => sub {
 
 has models_table => sub {
     {
-        fornecedores => 'Compras::Model::Providers',
-        licitacoes   => 'Compras::Model::Bids',
-        orgaos       => 'Compras::Model::Institutions',
-        contratos    => 'Compras::Model::Contracts',
-        pregoes      => 'Compras::Model::TradingFloors',
-        irps         => 'Compras::Model::IRPS',
-        materiais    => 'Compras::Model::Materials',
-        servicos     => 'Compras::Model::Services',
-        compras      => 'Compras::Model::NoPublicBidding',
-        uasgs        => 'Compras::Model::UASGS',
+        fornecedores   => 'Compras::Model::Providers',
+        licitacoes     => 'Compras::Model::Bids',
+        orgaos         => 'Compras::Model::Institutions',
+        contratos      => 'Compras::Model::Contracts',
+        pregoes        => 'Compras::Model::TradingFloors',
+        irps           => 'Compras::Model::IRPS',
+        materiais      => 'Compras::Model::Materials',
+        servicos       => 'Compras::Model::Services',
+        compras        => 'Compras::Model::NoPublicBidding',
+        uasgs          => 'Compras::Model::UASGS',
+        itenslicitacao => 'Compras::Model::Items',
     }
 };
 
