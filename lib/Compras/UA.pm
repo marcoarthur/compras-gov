@@ -37,12 +37,12 @@ has _dreq => sub {
 	<%= $url =%>
 EOT
 };
-has req_def => sub { undef };
+has model => sub { 1 };
 has _log    => sub { Mojo::Log->new( level => shift->log_level ) };
 
 sub url ( $self ) {
     my $params = { map { $_ => $self->$_ } qw( base module method format params ) };
-    return $self->_templ->vars(1)->render( $self->_req, $params ) unless $self->req_def;
+    return $self->_templ->vars(1)->render( $self->_req, $params ) if $self->model;
 
     delete $params->{params};
     $params->{id} = $self->params->{id}
@@ -69,7 +69,7 @@ sub get_data( $self ) {
             my $params = { tx => $tx };
 
             # change default json_structure expected if we we are requesting definition
-            $params->{json_structure} = { links => '/_links' } if $self->req_def;
+            $params->{json_structure} = { links => '/_links' } unless $self->model;
             $rs                       = Compras::RSet->new($params);
             $res                      = $rs->parse;
         }
@@ -86,7 +86,7 @@ sub get_data( $self ) {
     }
 
     # not a data collection: just save response and return it
-    if ( $self->req_def ) {
+    unless ( $self->model ) {
         $self->_hist->{$url} = $res;
         return $res;
     }
