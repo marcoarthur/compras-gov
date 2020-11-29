@@ -5,7 +5,7 @@ use Test::More;
 
 my @searches = (
     { module => 'servicos', params => { grupo => 542 } },
-    { module => 'materiais', method => 'material', params => { id => 17663 }, req_def => 1 },
+    { module => 'materiais', method => 'material', params => { id => 17663 }, model => 0 },
 );
 use_ok $_ for qw( Compras::Search );
 

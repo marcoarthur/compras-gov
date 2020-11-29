@@ -68,7 +68,7 @@ subtest 'Testing Definition Models' => sub {
         module  => 'materiais',
         method  => 'material',
         params  => { id => 17663 },
-        req_def => 1
+        model => 0
     );
     my $data = $ua->get_data;
     ok $data->{results}, "has a result";
