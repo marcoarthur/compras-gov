@@ -3,7 +3,7 @@ use Mojo::Base -base, -signatures;
 use Mojo::Exception qw(raise);
 use Mojo::JSON::Pointer;
 use Mojo::Collection;
-use Mojo::Loader qw(load_class);
+use Mojo::Loader qw(load_class find_modules);
 use Mojo::Log;
 use utf8;
 
@@ -18,31 +18,34 @@ has json_structure => sub {
 };
 
 has models_table => sub {
-    {
-        fornecedores     => 'Compras::Model::Providers',
-        licitacoes       => 'Compras::Model::Bids',
-        orgaos           => 'Compras::Model::Institutions',
-        contratos        => 'Compras::Model::Contracts',
-        pregoes          => 'Compras::Model::TradingFloors',
-        irps             => 'Compras::Model::IRPS',
-        materiais        => 'Compras::Model::Materials',
-        servicos         => 'Compras::Model::Services',
-        compras          => 'Compras::Model::NoPublicBidding',
-        uasgs            => 'Compras::Model::UASGS',
-        itenslicitacao   => 'Compras::Model::Items',
-        registrospreco   => 'Compras::Model::PriceRegisters',
-        precospraticados => 'Compras::Model::PriceEnlisted',
-    }
+    state $table = shift->_build_model_table;
 };
 
 has _log => sub { Mojo::Log->new };
 
-sub _determine_model ( $self, $type ) {
-    my $class = $self->models_table->{$type};
-    raise "Compras::Exception", "Cannot find a model for $type" unless $class;
-    my $e = load_class($class);
-    raise "Compras::Exception", "Error ($e) loading class: $class" if $e;
-    return $class;
+sub _load_models ( $self ) {
+    my $namespace = 'Compras::Model';
+    my @models;
+    for my $model ( find_modules $namespace ) {
+        my $e = load_class $model;
+        raise "Compras::Exception", "Error($e) loading model $model" if $e;
+        push @models, $model;
+    }
+
+    return Mojo::Collection->new(@models);
+}
+
+sub _build_model_table( $self ) {
+    my $models = $self->_load_models;
+    my %table;
+    $models->each(
+        sub ( $class, $index ) {
+            my $obj = $class->new;
+            $table{ $obj->model_name } = $class;
+        }
+    );
+
+    return \%table;
 }
 
 # validate json response structure
@@ -75,7 +78,7 @@ sub _validate_json ( $self, $json_obj ) {
     # construct the model from hash
     my $type    = shift @types;
     my $results = $val->{$type};
-    my $class   = $self->_determine_model( lc $type );
+    my $class   = $self->models_table->{ lc($type) };
     raise "Compras::Exception", "Server results are not a list: $results"
       unless ref $results eq 'ARRAY';
     my $collection = Mojo::Collection->new(@$results)->map( sub { $class->new->from_hash($_) } );
