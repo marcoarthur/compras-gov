@@ -10,13 +10,14 @@ our $VERSION = "0.04";
 use constant TIMEOUT     => 120;
 use constant MAX_RECORDS => 500;
 
-has _hist      => sub { +{} };
-has log_level  => sub { 'debug' };
-has _log       => sub { Mojo::Log->new( level => shift->log_level ) };
-has model_name => sub { die 'Required model name' };
-has tout       => sub { TIMEOUT };
-has _ua        => sub { Mojo::UserAgent->new->inactivity_timeout( shift->tout )->max_redirects(5) };
+has log_level          => sub { 'debug' };
+has model_name         => sub { die 'Required model name' };
 has response_structure => sub { die 'Required response structure' };
+
+has tout  => sub { TIMEOUT };
+has _hist => sub { +{} };
+has _log  => sub { Mojo::Log->new( level => shift->log_level ) };
+has _ua   => sub { Mojo::UserAgent->new->inactivity_timeout( shift->tout )->max_redirects(5) };
 
 # non blocking
 async sub get_data_p ( $self, $url ) {
