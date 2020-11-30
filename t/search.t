@@ -15,9 +15,9 @@ can_ok $s, qw(search);
 my $res;
 
 map { 
-    $s->query($_);
-    $res = $s->search;
+    $res = $s->query($_)->search;
     ok $res, "got a response";
+    isa_ok $res->{results}, 'Mojo::Collection';
 } @searches;
 
 # apply roles to the models returned

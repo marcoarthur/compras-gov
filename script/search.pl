@@ -5,7 +5,7 @@ use Mojo::Log;
 use Syntax::Keyword::Try;
 use lib qw(./lib);
 use utf8;
-use Compras::UA;
+use Compras::Search;
 use Text::CSV qw( csv );
 use Safe::Isa;
 use DDP;
@@ -60,30 +60,7 @@ my @searches = (
             module => 'fornecedores',
             params => { id_municipio => 72095 }
         },
-        cb => sub ( $data ) {
-            my $bids = $data->{results}->map(
-                sub {
-                    Compras::UA->new(
-                        {
-                            module => 'licitacoes',
-                            params => { id_fornecedor => $_->id },
-                            tout   => 2
-                        }
-                    );
-                }
-            )->map(
-                sub {
-                    try { return $_->get_data->{results} } catch ($e) {
-                        warn "Error: $e";
-                        return [];
-                    }
-                }
-            );
-
-            $bids->flatten;
-            write_csv( { results => $bids } );
-            return $data;
-        },
+        cb => $default_cb,
         run => 0,
     },
 
@@ -146,8 +123,8 @@ my @searches = (
 sub do_search {
     my %values = @_;
     $log->info("Searching $values{description} ...");
-    my $ua = Compras::UA->new( %{ $values{search} } , tout => 380 );
-    return $values{cb}->( $ua->get_data );
+    my $s = Compras::Search->new( query => $values{search}, tout => 380 );
+    return $values{cb}->( $s->search );
 }
 
 sub run_all {
