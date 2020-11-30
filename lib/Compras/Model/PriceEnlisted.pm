@@ -7,6 +7,7 @@ has doc_url => sub {
 };
 
 has from_module => sub { return 'licitacoes' };
+has model_name  => sub { return 'precospraticados' };
 
 has attributes => sub {
     return {

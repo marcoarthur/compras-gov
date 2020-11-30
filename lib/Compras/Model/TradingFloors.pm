@@ -4,6 +4,7 @@ use utf8;
 
 has doc_url     => sub { return 'http://compras.dados.gov.br/docs/pregoes/v1/pregoes.html' };
 has from_module => sub { return 'pregoes' };
+has model_name  => sub { return 'pregoes' };
 has attributes  => sub {
     return {
         co_portaria           => 'Informa código da portaria',

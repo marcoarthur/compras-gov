@@ -4,6 +4,7 @@ use utf8;
 
 has doc_url     => sub { return 'http://compras.dados.gov.br/docs/materiais/v1/materiais.html' };
 has from_module => sub { return 'materiais' };
+has model_name  => sub { return 'materiais' };
 has attributes  => sub {
     return {
         codigo      => 'Código do item de material.',

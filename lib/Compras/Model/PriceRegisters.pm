@@ -7,7 +7,8 @@ has url_doc => sub {
     return Mojo::URL->new('http://compras.dados.gov.br/docs/licitacoes/v1/registros_preco.html');
 };
 
-has from_module => sub { 'licitacoes' };
+has from_module => sub { return 'licitacoes' };
+has model_name  => sub { return 'registrospreco' };
 
 has attributes => sub {
     return {

@@ -4,6 +4,7 @@ use utf8;
 
 has doc_url     => sub { return 'http://compras.dados.gov.br/docs/servicos/v1/servicos.html' };
 has from_module => sub { return 'servicos' };
+has model_name  => sub { return 'servicos' };
 
 has attributes => sub {
     return {

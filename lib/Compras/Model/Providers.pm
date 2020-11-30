@@ -4,6 +4,7 @@ use utf8;
 
 has doc_url => sub { return 'http://compras.dados.gov.br/docs/fornecedores/v1/fornecedores.html' };
 has from_module => sub { return 'fornecedores' };
+has model_name  => sub { return 'fornecedores' };
 has attributes  => sub {
     return {
         ativo                   => 'Se o fornecedor está ativo.',

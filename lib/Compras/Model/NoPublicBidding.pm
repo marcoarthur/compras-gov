@@ -4,7 +4,8 @@ use utf8;
 
 has doc_url =>
   sub { return 'http://compras.dados.gov.br/docs/compraSemLicitacao/v1/compras_slicitacao.html' };
-has from_module => sub { 'compraSemLicitacao ' };
+has from_module => sub { return 'compraSemLicitacao ' };
+has model_name  => sub { return 'compras' };
 has attributes  => sub {
     return {
         co_modalidade_licitacao => 'Tipo de compra sem licitação - código',

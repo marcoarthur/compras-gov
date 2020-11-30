@@ -4,6 +4,7 @@ use utf8;
 
 has doc_url     => sub { return 'http://compras.dados.gov.br/docs/licitacoes/v1/uasgs.html' };
 has from_module => sub { return 'licitacoes' };
+has model_name  => sub { return 'uasgs' };
 has attributes  => sub {
     return {
         ativo                            => 'Se a UASG está ativa.',
