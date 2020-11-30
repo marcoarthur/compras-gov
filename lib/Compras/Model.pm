@@ -4,6 +4,26 @@ use Mojo::Exception qw(raise);
 
 has attributes => sub { +{} };
 
+# common template for most models
+has template => sub {
+    return <<'EOT';
+    % use Mojo::URL;
+	% my $url = Mojo::URL->new( qq{$base/$module/v1/$method.$format} );
+    % $url->query->merge( %{ $params } );
+	<%== $url->to_abs =%>
+EOT
+};
+
+# common json response structure for most models
+has json_res_structure => sub {
+    return {
+        results => '/_embedded',
+        links   => '/_links',
+        count   => '/count',
+        offset  => '/offset',
+    };
+};
+
 sub from_hash ( $self, $hash ) {
     raise 'Compras::Exception', "Not a hash ref" unless ref $hash eq 'HASH';
 

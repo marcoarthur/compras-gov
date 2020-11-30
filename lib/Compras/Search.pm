@@ -1,57 +1,112 @@
 package Compras::Search;
 use Mojo::Base -base, -signatures;
-use Syntax::Keyword::Try;
-use Mojo::Exception qw(raise);
-use Mojo::Redis;
+
 use Compras::UA;
-use Mojo::JSON qw(encode_json decode_json);
-use Safe::Isa;
-use Mojo::Log;
-use Mojo::Loader qw(find_modules);
-use List::Util qw(first);
+use Compras::Utils qw(load_models);
 use Digest::MD5 qw(md5_hex);
+use List::Util qw(first all);
+use Mojo::Exception qw(raise);
+use Mojo::JSON qw(encode_json decode_json);
+use Mojo::Loader qw(find_modules);
+use Mojo::Log;
+use Mojo::Redis;
+use Safe::Isa;
+use Syntax::Keyword::Try;
+
 our $HIST = {};
 
-has cache => sub { state $redis = Mojo::Redis->new->db };
-has log   => sub { state $log   = Mojo::Log->new };
-has roles => sub { [] };
+has base   => sub { 'http://compras.dados.gov.br' };
+has format => sub { 'json' };
+has log    => sub { state $log = Mojo::Log->new };
+has roles  => sub { [] };
+has query  => sub { die "Need a defined query" };
 
-sub key ( $self, $q ) {
+has _templ => sub { Mojo::Template->new };
 
-    # combine query url and roles
-    my $joined = join "|", ( $q, @{ $self->roles } );
-    md5_hex($joined);
+# parses the query structure to check if module contains this method as
+# compras.gov.br defines in their docs
+sub _parse_search( $self ) {
+    my $models = load_models;
+
+    # extract modules and methods as defined by models
+    my ( %modules, %model_objs );
+    $models->each(
+        sub ( $class, $index ) {
+            my $obj = $class->new;
+            $model_objs{ $obj->model_name } = $obj;
+            my $list = $modules{ $obj->from_module } || [];
+            push @$list, $obj->model_name;
+            $modules{ $obj->from_module } = $list;
+        }
+    );
+
+    $self->_check_query_structure;
+    $self->_check_module_consistence( \%modules );
+
+    # get template string for query
+    my $q = $self->query;
+    my ( $module, $method ) = @$q{qw(module method)};
+    my $model_name = first { $_ eq $method } @{ $modules{$module} };
+    my $model      = $model_objs{$model_name};
+
+    # fullfill template string with query variables
+    my $tmpl_params = {
+        base   => $self->base,
+        format => $self->format,
+        %{ $self->query }
+    };
+    my $url      = $self->_templ->vars(1)->render( $model->template, $tmpl_params );
+    my $json_str = $model->json_res_structure;
+    return $url, $model;
 }
 
-sub query ( $self, $q ) {
-    my $ua  = Compras::UA->new($q);
-    my $key = $self->key( $ua->url );
-    my $res = $self->cache->get($key);
-    return decode_json($res) if $res;
+# check query highlevel parameters
+sub _check_query_structure( $self ) {
+    my @mandatory = qw(module);
+    my @optional  = qw(method params model);
+    my $q         = $self->query;
+
+    unless ( all { defined $_ } @$q{@mandatory} ) {
+        raise 'Compras::Exception', "Missing a mandatory @mandatory parameter";
+    }
+
+    # set default method
+    $q->{method} = $q->{module} unless $q->{method};
+
+    for my $param ( keys %$q ) {
+        my $known = first { $_ eq $param } ( @mandatory, @optional );
+        raise 'Compras::Exception', "Unknown search parameter: $param" unless $known;
+    }
+}
+
+sub _check_module_consistence ( $self, $modules ) {
+    my $q = $self->query;
+    my ( $method, $module ) = @$q{qw(method module)};
+    my $m = first { $_ eq $method } @{ $modules->{$module} };
+    raise 'Compras::Exception', "Invalid method $method for module $module" unless $m;
+}
+
+sub search ( $self ) {
+
+    my ( $url, $model ) = $self->_parse_search;
+    my $ua = Compras::UA->new(
+        response_structure => $model->json_res_structure,
+        model_name         => $model->model_name,
+    );
 
     $self->log->info("Fetching from server");
     try {
-        $res = $ua->get_data->{results};
+
+        my $res = $ua->get_data($url);
 
         # model collection: apply any role and transform in hash
-        if ( $res->$_isa('Mojo::Collection') ) {
-            $self->_apply_role($res);
-            my $arr = $res->map(
-                sub {
-                    $_->add_to_attrs( '_other', "Extra attribute" );
-                    $_->to_hash;
-                }
-            )->to_array;
-            $res = $arr;
+        if ( $res->{results}->$_isa('Mojo::Collection') ) {
+            $self->_apply_role( $res->{results} );
         }
-
-        $self->cache->set( $key, encode_json($res) );
+        return $res;
     } catch ($e) {
-        my $url = $ua->url;
         raise 'Compras::Exception', "Error querying $url: $e";
     }
-
-    return $res;
 }
 
 sub _apply_role ( $self, $collection ) {
@@ -61,19 +116,8 @@ sub _apply_role ( $self, $collection ) {
     for my $role ( @{ $self->roles } ) {
         my $m = first { $_ eq $role } @all;
         raise 'Compras::Exception', "Role $role Not found" unless $m;
-        $collection->each(
-            sub {
-                $_->with_roles($role);
-                if ( $role =~ /ExpandLinks/ ) {
-                    $_->log( $self->log )->expand_links;
-                }
-                if ( $role =~ /ExtendedAttrs/ ) {
-                    $_->install_acessors_from_links;
-                }
-            }
-        );
+        $collection->each( sub { $_->with_roles($role); } );
     }
-
 }
 
 1;
@@ -116,9 +160,9 @@ A hash reference containing Roles to apply to basic Compras::Model.
 
 Calculate the key of query. Based on query and Roles
 
-=head2 query($hashref)
+=head2 search($hashref)
 
-  $self->query( { module => licitacoes, params => { valor_inicial_min => 1000 } } )
+  $self->search( { module => licitacoes, params => { valor_inicial_min => 1000 } } )
 
 Execute the query caching it. It will rerun the query on server given if query
 had expired.

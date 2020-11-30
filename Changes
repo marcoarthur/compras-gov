@@ -1,6 +1,9 @@
 Revision history for Perl extension Compras-UA
 
 {{$NEXT}}
+    - huge refactor making modeling cases easier
+    - create search module that parsers search rules
+    - refactor models and Rset to dynamic construct model table
 
 0.04 2020-11-22T17:09:27Z
     - add serializers to model issue #1

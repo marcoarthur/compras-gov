@@ -3,19 +3,13 @@ use Mojo::Base -base, -signatures;
 use Mojo::Exception qw(raise);
 use Mojo::JSON::Pointer;
 use Mojo::Collection;
-use Mojo::Loader qw(load_class find_modules);
 use Mojo::Log;
+use Compras::Utils qw(load_models);
 use utf8;
 
 has tx             => sub { die "Required attrib tx" };
-has json_structure => sub {
-    {
-        results => '/_embedded',
-        links   => '/_links',
-        count   => '/count',
-        offset  => '/offset',
-    }
-};
+has json_structure => sub { die "Required json structure to parse" };
+has 'model_name';
 
 has models_table => sub {
     state $table = shift->_build_model_table;
@@ -23,20 +17,8 @@ has models_table => sub {
 
 has _log => sub { Mojo::Log->new };
 
-sub _load_models ( $self ) {
-    my $namespace = 'Compras::Model';
-    my @models;
-    for my $model ( find_modules $namespace ) {
-        my $e = load_class $model;
-        raise "Compras::Exception", "Error($e) loading model $model" if $e;
-        push @models, $model;
-    }
-
-    return Mojo::Collection->new(@models);
-}
-
 sub _build_model_table( $self ) {
-    my $models = $self->_load_models;
+    my $models = load_models;
     my %table;
     $models->each(
         sub ( $class, $index ) {
@@ -61,11 +43,11 @@ sub _validate_json ( $self, $json_obj ) {
         $parsed->{$key} = $val;
     }
 
-    # not a data collection: treat it as data definition
-    # and assume model "as is".
+    # not a data collection: treat it data for one model only
     $val = $pointer->get('/_embedded');
     if ( !$val ) {
-        $parsed->{results} = $json_obj;
+        my $class = $self->_build_model_table->{ $self->model_name };
+        $parsed->{results} = Mojo::Collection->new( $class->new->from_hash($json_obj) );
         return $parsed;
     }
 

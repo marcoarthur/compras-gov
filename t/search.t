@@ -10,18 +10,19 @@ my @searches = (
 use_ok $_ for qw( Compras::Search );
 
 my $s = Compras::Search->new;
-can_ok $s, qw(query);
+can_ok $s, qw(search);
 
 my $res;
 
 map { 
-    $res = $s->query($_);
+    $s->query($_);
+    $res = $s->search;
     ok $res, "got a response";
 } @searches;
 
 # apply roles to the models returned
 $s->roles([ 'Compras::Model::Roles::ExpandLinks' ]);
-$res = $s->query( $searches[0] );
+$res = $s->query($searches[1])->search;
 ok $res, "Has a new response";
 
 done_testing;
