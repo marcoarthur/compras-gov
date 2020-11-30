@@ -63,7 +63,7 @@ sub get_data ( $self, $url ) {
     my $remain = Mojo::URL->new($url);
 
     while ( $total > $amount ) {
-        $remain->merge( { offset => $amount } );
+        $remain->query->merge( offset => $amount );
         $self->increase_timeout(5);
         push @promises, $self->get_data_p($remain)->then(
             sub ($tx) {

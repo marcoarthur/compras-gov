@@ -55,8 +55,7 @@ sub _parse_search( $self ) {
         format => $self->format,
         %{ $self->query }
     };
-    my $url      = $self->_templ->vars(1)->render( $model->template, $tmpl_params );
-    my $json_str = $model->json_res_structure;
+    my $url = $self->_templ->vars(1)->render( $model->template, $tmpl_params );
     return $url, $model;
 }
 
