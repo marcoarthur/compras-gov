@@ -3,6 +3,8 @@ use Mojo::Base -base, -signatures, -role;
 use Mojo::Exception qw(raise);
 use Mojo::URL;
 use Mojo::UserAgent;
+use Compras::RSet;
+use Compras::Utils qw(determine_model_from_url);
 use DDP;
 use Syntax::Keyword::Try;
 
@@ -42,7 +44,12 @@ sub expand_links( $self ) {
     $self->log->info( "Expanding info for " . join " ", $self->_topics );
     $self->_links->each(
         sub ( $e, $n ) {
-            my $url = $e->{href};
+            my $url   = $e->{href};
+            my $model = determine_model_from_url($url);
+            unless ($model) {
+                warn "Skipping $url could not determine a model";
+                return;
+            }
 
             if ( exists $self->hist->{$url} ) {
                 $self->log->info( "From cache " . $url );
@@ -53,10 +60,16 @@ sub expand_links( $self ) {
 
             try {
                 $self->log->info( "Following " . $url );
-                my $res = $self->_ua->get($url)->result;
+                my $tx = $self->_ua->get($url);
                 $self->log->info("Saving info");
-                $self->hist->{$url} = $res->json;
-                $e->{ $self->accessor } = $res->json;
+                my $r = Compras::RSet->new(
+                    tx             => $tx,
+                    json_structure => $model->json_res_structure,
+                    model_name     => $model->model_name
+                );
+                my $parsed = $r->parse;
+                $self->hist->{$url} = $parsed;
+                $e->{ $self->accessor } = $self->hist->{$url};
             } catch ($err) {
                 warn "Unable to retrieve $url and save: $err";
                 return;
