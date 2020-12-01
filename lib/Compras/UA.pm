@@ -10,68 +10,37 @@ our $VERSION = "0.04";
 use constant TIMEOUT     => 120;
 use constant MAX_RECORDS => 500;
 
-has base   => sub { 'http://compras.dados.gov.br' };
-has module => sub { die "module is required" };
-has method => sub { shift->module or die "method is required" };
-has format => sub { 'json' };
-has params => sub { +{} };
-has tout   => sub { TIMEOUT };
-has _ua    => sub { Mojo::UserAgent->new->inactivity_timeout( shift->tout ) };
-has _templ => sub { Mojo::Template->new };
-has _hist  => sub { +{} };
-has _req   => sub {
-    <<'EOT';
-	% my $url = qq{$base/$module/v1/$method.$format};
-	% my $params = join "&", map { qq($_=$params->{$_}) } keys %$params;
-	% $url = $params ? join("?", $url, $params) : $url;
-	<%= $url =%>
-EOT
-};
+has log_level          => sub { 'debug' };
+has model_name         => sub { die 'Required model name' };
+has response_structure => sub { die 'Required response structure' };
 
-has log_level => sub { 'debug' };
-
-# request to entities definition. That follows other url scheme
-has _dreq => sub {
-    <<'EOT';
-	% my $url = qq{$base/$module/doc/$method/$id.$format};
-	<%= $url =%>
-EOT
-};
-has req_def => sub { undef };
-has _log    => sub { Mojo::Log->new( level => shift->log_level ) };
-
-sub url ( $self ) {
-    my $params = { map { $_ => $self->$_ } qw( base module method format params ) };
-    return $self->_templ->vars(1)->render( $self->_req, $params ) unless $self->req_def;
-
-    delete $params->{params};
-    $params->{id} = $self->params->{id}
-      or raise "Compras::Exception", "Missing id in parameters";
-    return $self->_templ->vars(1)->render( $self->_dreq, $params );
-}
+has tout  => sub { TIMEOUT };
+has _hist => sub { +{} };
+has _log  => sub { Mojo::Log->new( level => shift->log_level ) };
+has _ua   => sub { Mojo::UserAgent->new->inactivity_timeout( shift->tout )->max_redirects(5) };
 
 # non blocking
-async sub get_data_p( $self ) {
-    return $self->_ua->get_p( $self->url );
+async sub get_data_p ( $self, $url ) {
+    return $self->_ua->get_p($url);
 }
 
 # blocking
-sub get_data( $self ) {
-    my ( $res, $format, $url ) = ( undef, $self->format, $self->url );
+sub get_data ( $self, $url ) {
     my $cached = $self->_hist->{$url};
     return $cached if $cached;
 
     $self->_log->info("Getting data from $url");
-    my ( $rs, $e );
+    my ( $rs, $e, $res );
 
-    $self->get_data_p->then(
+    $self->get_data_p($url)->then(
         sub ($tx) {
-            my $params = { tx => $tx };
-
-            # change default json_structure expected if we we are requesting definition
-            $params->{json_structure} = { links => '/_links' } if $self->req_def;
-            $rs                       = Compras::RSet->new($params);
-            $res                      = $rs->parse;
+            my $params = {
+                tx             => $tx,
+                json_structure => $self->response_structure,
+                model_name     => $self->model_name
+            };
+            $rs  = Compras::RSet->new($params);
+            $res = $rs->parse;
         }
     )->catch(
         sub ($err) {
@@ -85,24 +54,18 @@ sub get_data( $self ) {
         return;
     }
 
-    # not a data collection: just save response and return it
-    if ( $self->req_def ) {
-        $self->_hist->{$url} = $res;
-        return $res;
-    }
-
     # After the first request: check if we need more request to fullfill
     # records missing. Make concurrent calls to receive the rest of records.
     # (Serve response with maximum 500 records per request)
-    my $total  = $res->{count};
+    my $total  = $res->{count} || 0;
     my $amount = $res->{results}->size;
     my @promises;
+    my $remain = Mojo::URL->new($url);
 
     while ( $total > $amount ) {
-        $self->params->{offset} = $amount;
-        my $url = $self->url;
+        $remain->query->merge( offset => $amount );
         $self->increase_timeout(5);
-        push @promises, $self->get_data_p->then(
+        push @promises, $self->get_data_p($remain)->then(
             sub ($tx) {
                 $rs->tx($tx);
                 my $partial = $rs->parse->{results};

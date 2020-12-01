@@ -3,42 +3,31 @@ use Mojo::Base -base, -signatures;
 use Mojo::Exception qw(raise);
 use Mojo::JSON::Pointer;
 use Mojo::Collection;
-use Mojo::Loader qw(load_class);
 use Mojo::Log;
+use Compras::Utils qw(load_models);
 use utf8;
 
 has tx             => sub { die "Required attrib tx" };
-has json_structure => sub {
-    {
-        results => '/_embedded',
-        links   => '/_links',
-        count   => '/count',
-        offset  => '/offset',
-    }
-};
+has json_structure => sub { die "Required json structure to parse" };
+has 'model_name';
 
 has models_table => sub {
-    {
-        fornecedores => 'Compras::Model::Providers',
-        licitacoes   => 'Compras::Model::Bids',
-        orgaos       => 'Compras::Model::Institutions',
-        contratos    => 'Compras::Model::Contracts',
-        pregoes      => 'Compras::Model::TradingFloors',
-        irps         => 'Compras::Model::IRPS',
-        materiais    => 'Compras::Model::Materials',
-        servicos     => 'Compras::Model::Services',
-        compras      => 'Compras::Model::NoPublicBidding',
-    }
+    state $table = shift->_build_model_table;
 };
 
 has _log => sub { Mojo::Log->new };
 
-sub _determine_model ( $self, $type ) {
-    my $class = $self->models_table->{$type};
-    raise "Compras::Exception", "Cannot find a model for $type" unless $class;
-    my $e = load_class($class);
-    raise "Compras::Exception", "Error ($e) loading class: $class" if $e;
-    return $class;
+sub _build_model_table( $self ) {
+    my $models = load_models;
+    my %table;
+    $models->each(
+        sub ( $class, $index ) {
+            my $obj = $class->new;
+            $table{ $obj->model_name } = $class;
+        }
+    );
+
+    return \%table;
 }
 
 # validate json response structure
@@ -54,11 +43,11 @@ sub _validate_json ( $self, $json_obj ) {
         $parsed->{$key} = $val;
     }
 
-    # not a data collection: treat it as data definition
-    # and assume model "as is".
+    # not a data collection: treat it data for one model only
     $val = $pointer->get('/_embedded');
     if ( !$val ) {
-        $parsed->{results} = $json_obj;
+        my $class = $self->_build_model_table->{ $self->model_name };
+        $parsed->{results} = Mojo::Collection->new( $class->new->from_hash($json_obj) );
         return $parsed;
     }
 
@@ -71,7 +60,7 @@ sub _validate_json ( $self, $json_obj ) {
     # construct the model from hash
     my $type    = shift @types;
     my $results = $val->{$type};
-    my $class   = $self->_determine_model( lc $type );
+    my $class   = $self->models_table->{ lc($type) };
     raise "Compras::Exception", "Server results are not a list: $results"
       unless ref $results eq 'ARRAY';
     my $collection = Mojo::Collection->new(@$results)->map( sub { $class->new->from_hash($_) } );
