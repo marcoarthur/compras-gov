@@ -62,7 +62,7 @@ sub get_data ( $self, $url ) {
         push @promises, $self->get_data_p($remain)->then(
             sub ($tx) {
                 $rs->tx($tx);
-                my $partial = $rs->parse->{results};
+                my $partial = $rs->parse($self->model)->{results};
                 push @{ $res->{results} }, @{$partial};
                 my $size = $partial->size;
                 $self->_log->info("Retrivied $size records from $total total");
