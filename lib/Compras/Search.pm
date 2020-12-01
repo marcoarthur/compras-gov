@@ -2,7 +2,7 @@ package Compras::Search;
 use Mojo::Base -base, -signatures;
 
 use Compras::UA;
-use Compras::Utils qw(load_models);
+use Compras::Utils qw(load_models model_from_query);
 use Digest::MD5 qw(md5_hex);
 use List::Util qw(first all);
 use Mojo::Exception qw(raise);
@@ -44,10 +44,9 @@ sub _parse_search( $self ) {
     $self->_check_module_consistence( \%modules );
 
     # get template string for query
-    my $q = $self->query;
-    my ( $module, $method ) = @$q{qw(module method)};
-    my $model_name = first { $_ eq $method } @{ $modules{$module} };
-    my $model      = $model_objs{$model_name};
+    my $model = model_from_query( $self->query );
+
+    raise "Compras::Exception", "Error could not find a model for your query" unless $model;
 
     # check search parameter consistency
     my $allowable_search_params = $model->search_parameters;
@@ -71,7 +70,7 @@ sub _parse_search( $self ) {
 # check query highlevel parameters
 sub _check_query_structure( $self ) {
     my @mandatory = qw(module);
-    my @optional  = qw(method params model);
+    my @optional  = qw(method params model submethod);
     my $q         = $self->query;
 
     unless ( all { defined $_ } @$q{@mandatory} ) {
@@ -97,10 +96,7 @@ sub _check_module_consistence ( $self, $modules ) {
 sub search ( $self ) {
 
     my ( $url, $model ) = $self->_parse_search;
-    my $ua = Compras::UA->new(
-        response_structure => $model->json_res_structure,
-        model_name         => $model->model_name,
-    );
+    my $ua = Compras::UA->new( model => $model );
 
     $self->log->info("Fetching from server");
     try {

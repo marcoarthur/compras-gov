@@ -10,10 +10,9 @@ our $VERSION = "0.04";
 use constant TIMEOUT     => 120;
 use constant MAX_RECORDS => 500;
 
-has log_level          => sub { 'debug' };
-has model_name         => sub { die 'Required model name' };
-has response_structure => sub { die 'Required response structure' };
+has log_level => sub { 'debug' };
 
+has model => sub { die "Required model for search results" };
 has tout  => sub { TIMEOUT };
 has _hist => sub { +{} };
 has _log  => sub { Mojo::Log->new( level => shift->log_level ) };
@@ -34,13 +33,8 @@ sub get_data ( $self, $url ) {
 
     $self->get_data_p($url)->then(
         sub ($tx) {
-            my $params = {
-                tx             => $tx,
-                json_structure => $self->response_structure,
-                model_name     => $self->model_name
-            };
-            $rs  = Compras::RSet->new($params);
-            $res = $rs->parse;
+            $rs  = Compras::RSet->new(tx => $tx);
+            $res = $rs->parse($self->model);
         }
     )->catch(
         sub ($err) {

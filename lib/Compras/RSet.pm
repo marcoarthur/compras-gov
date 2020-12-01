@@ -8,35 +8,14 @@ use Compras::Utils qw(load_models);
 use utf8;
 
 has tx             => sub { die "Required attrib tx" };
-has json_structure => sub { die "Required json structure to parse" };
-has 'model_name';
-
-has models_table => sub {
-    state $table = shift->_build_model_table;
-};
-
 has _log => sub { Mojo::Log->new };
 
-sub _build_model_table( $self ) {
-    my $models = load_models;
-    my %table;
-    $models->each(
-        sub ( $class, $index ) {
-            my $name = $class->new->model_name;
-            $name =~ s/_+//;
-            $table{ lc($name) } = $class;
-        }
-    );
-
-    return \%table;
-}
-
 # validate json response structure
-sub _validate_json ( $self, $json_obj ) {
+sub _validate_json ( $self, $json_obj, $model ) {
     my $pointer = Mojo::JSON::Pointer->new($json_obj);
     my ( $parsed, $val ) = ( {}, undef );
 
-    while ( my ( $key, $member ) = each %{ $self->json_structure } ) {
+    while ( my ( $key, $member ) = each %{ $model->json_res_structure } ) {
         if ( !$pointer->contains($member) ) {
             raise 'Compras::Exception', "Invalid Server Response missing $member";
         }
@@ -47,8 +26,7 @@ sub _validate_json ( $self, $json_obj ) {
     # not a data collection: treat it data for one model only
     $val = $pointer->get('/_embedded');
     if ( !$val ) {
-        my $class = $self->_build_model_table->{ $self->model_name };
-        $parsed->{results} = Mojo::Collection->new( $class->new->from_hash($json_obj) );
+        $parsed->{results} = Mojo::Collection->new( $model->new->from_hash($json_obj) );
         return $parsed;
     }
 
@@ -59,15 +37,11 @@ sub _validate_json ( $self, $json_obj ) {
     }
 
     # construct the model from hash
-    use DDP;
     my $type    = shift @types;
-    $type =~ s/_+//; #remove underlines
     my $results = $val->{$type};
-    my $class   = $self->models_table->{ lc($type) };
-    raise "Compras::Exception", "Can't found a model for $type" unless $class;
     raise "Compras::Exception", "Server results are not a list: $results"
       unless ref $results eq 'ARRAY';
-    my $collection = Mojo::Collection->new(@$results)->map( sub { $class->new->from_hash($_) } );
+    my $collection = Mojo::Collection->new(@$results)->map( sub { $model->new->from_hash($_) } );
     $parsed->{results} = $collection;
 
     return $parsed;
@@ -82,14 +56,14 @@ sub _validate( $self ) {
     return 1;
 }
 
-sub parse( $self ) {
+sub parse( $self, $model ) {
     $self->_validate();
     my $content_type = lc $self->tx->res->headers->content_type;
     my $result_set;
 
     if ( $content_type =~ qr{application/json} ) {
         my $res_obj = $self->tx->res->json;
-        $result_set = $self->_parse_model_json($res_obj);
+        $result_set = $self->_parse_model_json($res_obj, $model);
     } else {
         $result_set = $self->_parse_model_other( $self->tx->res->body );
     }
@@ -98,8 +72,8 @@ sub parse( $self ) {
 }
 
 # Parse a JSON object
-sub _parse_model_json ( $self, $res_obj ) {
-    my $structure = $self->_validate_json($res_obj);
+sub _parse_model_json ( $self, $res_obj, $model ) {
+    my $structure = $self->_validate_json($res_obj, $model);
     return $structure;
 }
 

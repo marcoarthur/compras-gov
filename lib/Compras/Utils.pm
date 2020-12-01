@@ -6,7 +6,7 @@ use Mojo::Collection;
 use List::Util qw(first);
 use Exporter;
 our @ISA       = qw(Exporter);
-our @EXPORT_OK = (qw(&load_models &module_method_list &determine_model_from_url));
+our @EXPORT_OK = (qw(&load_models &module_method_list &determine_model_from_url &model_from_query));
 
 sub load_models {
     my $namespace = 'Compras::Model';
@@ -34,6 +34,26 @@ sub module_method_list {
         }
     );
     return $modules_list;
+}
+
+sub model_from_query {
+
+    # search using module / method parameters
+    my $query = shift;
+    my ( $module, $method ) = @$query{qw(module method)};
+    my @models = @{ load_models->map( sub { $_->new } )->to_array };
+    my @found  = grep { $_->from_module eq $module && $_->model_name eq $method } @models;
+
+    return unless @found;
+
+    # verify further parameters for disambiguation
+    if ( @found > 1 ) {
+        if ( $query->{submethod} ) {
+            return first { $_->can('submethod') && $_->submethod eq $query->{submethod} } @found;
+        }
+    }
+
+    return $found[0];
 }
 
 sub determine_model_from_url {
