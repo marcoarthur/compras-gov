@@ -115,5 +115,3 @@ sub nome_uasg( $self ) {
 }
 
 1;
-
-__DATA__

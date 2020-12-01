@@ -8,9 +8,9 @@ has attributes => sub { +{} };
 has template => sub {
     return <<'EOT';
     % use Mojo::URL;
-	% my $url = Mojo::URL->new( qq{$base/$module/v1/$method.$format} );
+    % my $url = Mojo::URL->new( qq{$base/$module/v1/$method.$format} );
     % $url->query->merge( %{ $params } );
-	<%== $url->to_abs =%>
+    <%= $url->to_abs =%>
 EOT
 };
 
