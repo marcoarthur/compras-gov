@@ -49,6 +49,15 @@ sub _parse_search( $self ) {
     my $model_name = first { $_ eq $method } @{ $modules{$module} };
     my $model      = $model_objs{$model_name};
 
+    # check search parameter consistency
+    my $allowable_search_params = $model->search_parameters;
+    my @search_params           = keys %{ $self->query->{params} };
+    my @unknowns                = grep { !exists $allowable_search_params->{$_} } @search_params;
+
+    if (@unknowns) {
+        raise 'Compras::Exception', "Unknown(s) search parameter(s): @unknowns";
+    }
+
     # fullfill template string with query variables
     my $tmpl_params = {
         base   => $self->base,
