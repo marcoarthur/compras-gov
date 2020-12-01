@@ -22,8 +22,9 @@ sub _build_model_table( $self ) {
     my %table;
     $models->each(
         sub ( $class, $index ) {
-            my $obj = $class->new;
-            $table{ $obj->model_name } = $class;
+            my $name = $class->new->model_name;
+            $name =~ s/_+//;
+            $table{ lc($name) } = $class;
         }
     );
 
@@ -58,9 +59,12 @@ sub _validate_json ( $self, $json_obj ) {
     }
 
     # construct the model from hash
+    use DDP;
     my $type    = shift @types;
+    $type =~ s/_+//; #remove underlines
     my $results = $val->{$type};
     my $class   = $self->models_table->{ lc($type) };
+    raise "Compras::Exception", "Can't found a model for $type" unless $class;
     raise "Compras::Exception", "Server results are not a list: $results"
       unless ref $results eq 'ARRAY';
     my $collection = Mojo::Collection->new(@$results)->map( sub { $class->new->from_hash($_) } );
