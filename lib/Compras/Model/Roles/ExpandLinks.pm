@@ -62,12 +62,8 @@ sub expand_links( $self ) {
                 $self->log->info( "Following " . $url );
                 my $tx = $self->_ua->get($url);
                 $self->log->info("Saving info");
-                my $r = Compras::RSet->new(
-                    tx             => $tx,
-                    json_structure => $model->json_res_structure,
-                    model_name     => $model->model_name
-                );
-                my $parsed = $r->parse;
+                my $r      = Compras::RSet->new( tx => $tx, );
+                my $parsed = $r->parse($model);
                 $self->hist->{$url} = $parsed;
                 $e->{ $self->accessor } = $self->hist->{$url};
             } catch ($err) {
