@@ -13,7 +13,7 @@ has template    => sub {
     return <<'EOT';
     % use Mojo::URL;
 	% my $url = Mojo::URL->new( qq{$base/$module/id/$method/$params->{id}/itens.$format} );
-	<%== $url->to_abs =%>
+	<%= $url->to_abs =%>
 EOT
 };
 
