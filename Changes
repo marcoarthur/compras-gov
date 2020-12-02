@@ -1,6 +1,9 @@
 Revision history for Perl extension Compras-UA
 
 {{$NEXT}}
+
+0.05 2020-12-02T13:47:42Z
+    - create a role to join two search results
     - huge refactor making modeling cases easier
     - create search module that parsers search rules
     - refactor models and Rset to dynamic construct model table
