@@ -34,6 +34,7 @@ EOM
 
 sub write_csv( $data ) {
     my $res = $data->{results}->flatten or die "No results";
+    die "No results" unless $res->size > 0;
     my @lines;
     $res->each( sub { push @lines, $_->to_arrayref } );
     unshift @lines, $res->[0]->attributes_order;
