@@ -43,9 +43,11 @@
       "runtime" : {
          "requires" : {
             "DDP" : "0",
+            "Digest::MD5" : "0",
             "Future::AsyncAwait" : "0",
             "Getopt::Long" : "0",
             "Hash::Flatten" : "0",
+            "List::Util" : "0",
             "Mojo::Base" : "0",
             "Mojo::Collection" : "0",
             "Mojo::Exception" : "0",
@@ -53,6 +55,7 @@
             "Mojo::JSON::Pointer" : "0",
             "Mojo::Loader" : "0",
             "Mojo::Log" : "0",
+            "Mojo::Redis" : "0",
             "Mojo::Template" : "0",
             "Mojo::URL" : "0",
             "Mojo::UserAgent" : "0",

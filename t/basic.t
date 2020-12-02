@@ -2,7 +2,7 @@ use strict;
 use Test::More;
 use Mojo::Base -signatures;
 use Clone 'clone';
-our $debug  = 1;
+our $debug  = 0;
 our $TARGET = {
 
     #'Compras::Model::NoPublicBidding' => 1,
@@ -17,7 +17,6 @@ use_ok $_ for qw(
 
 sub build_search( @args ) {
     my $ua = $args[0] eq 'HASH' ? Compras::Search->new( $args[0] ) : Compras::Search->new(@args);
-    $ua->log_level('fatal') unless $debug;
     return $ua;
 }
 
