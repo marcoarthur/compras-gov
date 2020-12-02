@@ -8,27 +8,12 @@ use lib qw(./lib);
 use Getopt::Long;
 
 binmode( STDOUT, ":encoding(UTF-8)" );
-use Compras::UA;
+use Compras::Search;
 
-our %ATTRS = (
-    licitacoes => { 
-    uasg => [
-        qw(
-          cep cnpj ddd endereco fax id id_municipio id_orgao nome nome_mnemonico
-          ramal ramal2 sigla_uf telefone telefone2
-          total_fornecedores_cadastrados total fornecedores_recadastrados
-          unidade_cadastradora
-          )
-    ],
-    modalidade_licitacao => [qw( codigo descricao )],
-    },
-    contratos => {
-        tipo_contrato => [ qw( codigo descricao ) ],
-    }
-);
 
 our $module;
 our $method;
+our $params;
 
 sub usage {
     my $err = shift;
@@ -47,36 +32,35 @@ EOM
     exit 1;
 }
 
+sub write_csv( $data ) {
+    my $res = $data->{results}->flatten or die "No results";
+    my @lines;
+    $res->each( sub { push @lines, $_->to_arrayref } );
+    unshift @lines, $res->[0]->attributes_order;
+    die "No results" unless scalar @lines;
+    csv( in => \@lines, out => \*STDOUT );
+}
+
 sub main {
-    my @ids = @_;
-    usage unless @ids;
-    usage unless $method or $module;
-    usage( "incorrect module or method\n" ) unless $ATTRS{$module}->{$method};
-
-    my $uas = Mojo::Collection->new(
-        map {
-            Compras::UA->new(
-                module  => $module,
-                method  => $method,
-                params  => { id => $_ },
-                req_def => 1,
-            )
-        } @ids
-    );
-
-
-    my $results = $uas->map( sub ($ua) { $ua->get_data } )->map(
-        sub ($data) {
-            [ map { $data->{results}->{$_} } @{$ATTRS{$module}->{$method}} ]
+    usage unless $module;
+    $method //= $module;
+    ## no critic
+    $params = eval "$params";
+    ## critic
+    
+    my $s = Compras::Search->new(
+        query => { 
+            module  => $module,
+            method  => $method,
+            params  => $params,
         }
     );
 
-    unshift @$results, $ATTRS{$module}->{$method};
 
-    csv( in => $results->to_array, out => \*STDOUT );
+    write_csv($s->search);
     exit 0;
 }
 
 MAIN:
-GetOptions( "method=s" => \$method, "module=s" => \$module ) or usage($!);
+GetOptions( "method=s" => \$method, "module=s" => \$module, "params=s" => \$params ) or usage($!);
 main(@ARGV);
