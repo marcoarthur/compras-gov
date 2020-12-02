@@ -45,7 +45,7 @@ sub main {
     usage unless $module;
     $method //= $module;
     ## no critic
-    $params = eval "$params";
+    $params = eval "$params" if $params;
     ## critic
     
     my $s = Compras::Search->new(
