@@ -82,6 +82,8 @@ sub get_data ( $self, $url ) {
                 $self->_log->info( "Total " . $res->{results}->size . " records retrieved" );
             }
         )->wait;
+    } else {
+        $self->_log->info( "Total " . $res->{results}->size . " records retrieved" );
     }
 
     # save in history
