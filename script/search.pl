@@ -28,11 +28,38 @@ my $default_cb = sub ( $data ) {
     return $data;
 };
 
+my $itens_lic = sub {
+    my $licitations = shift->{results};
+    my $bid_itens   = Mojo::Collection->new;
+    my $find_itens = sub {
+
+        # find itens
+        my $bid = shift;
+        my $s   = Compras::Search->new;
+        $s->query(
+            {
+                module    => 'licitacoes',
+                method    => 'licitacao',
+                submethod => 'itens',
+                params    => {
+                    id => $bid->identificador,
+                },
+            }
+        );
+        my $itens = $s->search->{results}->to_array;
+        push @$bid_itens, @$itens;
+    };
+    $licitations->each( $find_itens );
+    write_csv( { results => $bid_itens } );
+    return $bid_itens;
+};
+
 my %cbs = (
-    default_cb => $default_cb
+    default_cb => $default_cb,
+    itens_lic   => $itens_lic,
 );
 
-my $data = require './script/data/searches.conf';
+my $data     = require './script/data/searches.conf';
 my @searches = @$data;
 
 sub do_search {
