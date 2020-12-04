@@ -1,8 +1,8 @@
 package Compras::Model;
-use Mojo::Base -base, -signatures;
+use Mojo::Base 'Mojo::EventEmitter', -signatures;
 use Mojo::Exception qw(raise);
 
-has attributes => sub { +{} };
+has attributes  => sub { +{} };
 
 # common template for most models
 has template => sub {
@@ -24,21 +24,29 @@ has json_res_structure => sub {
     };
 };
 
+has _initialized => sub { return 0; };
+
 sub from_hash ( $self, $hash ) {
+    return if $self->_initialized;
     raise 'Compras::Exception', "Not a hash ref" unless ref $hash eq 'HASH';
 
     for my $attr ( keys %{ $self->attributes } ) {
         raise 'Compras::Exception', "Cannot find $attr"
           unless exists $hash->{$attr};
-        $self->attr($attr);
-        $self->$attr( $hash->{$attr} );
+        $self->_set_attr( $attr, $hash->{$attr} );
         delete %$hash{$attr};
     }
 
     # save under _other the data left under $hash not listed on attributes
-    $self->attr('_other');
-    $self->_other($hash);
-    $self;
+    $self->_set_attr( '_other', $hash );
+    $self->_initialized(1);
+}
+
+sub _set_attr ( $self, $attr_name, $value ) {
+    return if $self->can($attr_name);
+    $self->attr($attr_name);
+    $self->$attr_name($value);
+    $self->emit( attr_set => { name => $attr_name, value => $value } );
 }
 
 sub to_hash( $self ) {
