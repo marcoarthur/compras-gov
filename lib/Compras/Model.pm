@@ -40,6 +40,7 @@ sub from_hash ( $self, $hash ) {
     # save under _other the data left under $hash not listed on attributes
     $self->_set_attr( '_other', $hash );
     $self->_initialized(1);
+    $self->emit('populated');
 }
 
 sub _set_attr ( $self, $attr_name, $value ) {
