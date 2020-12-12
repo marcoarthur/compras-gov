@@ -1,3 +1,4 @@
+requires 'Clone';
 requires 'DDP';
 requires 'Digest::MD5';
 requires 'Getopt::Long';
@@ -19,6 +20,7 @@ requires 'Syntax::Keyword::Try';
 requires 'Text::CSV';
 requires 'YAML';
 requires 'perl', '5.028';
+requires 'strictures', '2';
 requires 'Future::AsyncAwait';
 
 on configure => sub {
@@ -26,7 +28,6 @@ on configure => sub {
 };
 
 on test => sub {
-    requires 'Clone';
     requires 'Test::More', '0.98';
 };
 
