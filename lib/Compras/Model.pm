@@ -44,7 +44,6 @@ sub from_hash ( $self, $hash ) {
 }
 
 sub _set_attr ( $self, $attr_name, $value ) {
-    return if $self->can($attr_name);
     $self->attr($attr_name);
     $self->$attr_name($value);
     $self->emit( attr_set => { name => $attr_name, value => $value } );
