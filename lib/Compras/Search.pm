@@ -9,7 +9,6 @@ use Mojo::Exception qw(raise);
 use Mojo::JSON qw(encode_json decode_json);
 use Mojo::Loader qw(find_modules);
 use Mojo::Log;
-use Mojo::Redis;
 use Safe::Isa;
 use Syntax::Keyword::Try;
 

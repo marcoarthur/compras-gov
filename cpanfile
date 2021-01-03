@@ -11,7 +11,6 @@ requires 'Mojo::JSON';
 requires 'Mojo::JSON::Pointer';
 requires 'Mojo::Loader';
 requires 'Mojo::Log';
-requires 'Mojo::Redis';
 requires 'Mojo::Template';
 requires 'Mojo::URL';
 requires 'Mojo::UserAgent';
