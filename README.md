@@ -1,6 +1,6 @@
 # NAME
 
-Compras::UA - Client API to Brazil bid system (http://compras.dados.gov.br/)
+Compras::Search - Client API to Brazil bid system (http://compras.dados.gov.br/)
 
 # INSTALL
 
@@ -47,9 +47,8 @@ We list these terms, examplifing it, bellow:
 
 So the search bellow represents and returns all institutions named 'TRIBUNAL' that have bids listed.
 
-    my $ua = Compras::UA->new( { module => 'licitacoes',  method => 'orgaos', params => { nome => 'TRIBUNAL' } } );
     try {
-        my $res = $ua->get_data;
+        my $res = $self->search( { module => licitacoes, params => { valor_inicial_min => 1000 } } )
         $res->{results}->each( sub { $_->nome } );
     } catch ($e) {
         warn "Error $e";

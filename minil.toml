@@ -1,4 +1,4 @@
-name = "Compras-UA"
+name = "Compras-Search"
 # badges = ["travis-ci.com"]
 module_maker="ModuleBuildTiny"
 static_install = "auto"

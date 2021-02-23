@@ -24,10 +24,7 @@ has json_res_structure => sub {
     };
 };
 
-has _initialized => sub { return 0; };
-
 sub from_hash ( $self, $hash ) {
-    return if $self->_initialized;
     raise 'Compras::Exception', "Not a hash ref" unless ref $hash eq 'HASH';
 
     for my $attr ( keys %{ $self->attributes } ) {
@@ -39,7 +36,6 @@ sub from_hash ( $self, $hash ) {
 
     # save under _other the data left under $hash not listed on attributes
     $self->_set_attr( '_other', $hash );
-    $self->_initialized(1);
     $self->emit('populated');
 }
 

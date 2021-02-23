@@ -12,7 +12,7 @@
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
       "version" : 2
    },
-   "name" : "Compras-UA",
+   "name" : "Compras-Search",
    "no_index" : {
       "directory" : [
          "t",
@@ -42,6 +42,7 @@
       },
       "runtime" : {
          "requires" : {
+            "Clone" : "0",
             "DDP" : "0",
             "Digest::MD5" : "0",
             "Future::AsyncAwait" : "0",
@@ -55,7 +56,6 @@
             "Mojo::JSON::Pointer" : "0",
             "Mojo::Loader" : "0",
             "Mojo::Log" : "0",
-            "Mojo::Redis" : "0",
             "Mojo::Template" : "0",
             "Mojo::URL" : "0",
             "Mojo::UserAgent" : "0",
@@ -63,12 +63,12 @@
             "Syntax::Keyword::Try" : "0",
             "Text::CSV" : "0",
             "YAML" : "0",
-            "perl" : "5.028"
+            "perl" : "5.028",
+            "strictures" : "2"
          }
       },
       "test" : {
          "requires" : {
-            "Clone" : "0",
             "Test::More" : "0.98"
          }
       }

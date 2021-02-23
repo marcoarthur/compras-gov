@@ -11,6 +11,7 @@ use Mojo::Loader qw(find_modules);
 use Mojo::Log;
 use Safe::Isa;
 use Syntax::Keyword::Try;
+our $VERSION = "0.05";
 
 our $HIST = {};
 
@@ -79,6 +80,7 @@ sub _check_query_structure( $self ) {
     # set default method
     $q->{method} = $q->{module} unless $q->{method};
 
+    # TODO: should be first check above other two.
     for my $param ( keys %$q ) {
         my $known = first { $_ eq $param } ( @mandatory, @optional );
         raise 'Compras::Exception', "Unknown search parameter: $param" unless $known;
@@ -127,60 +129,105 @@ sub _apply_role ( $self, $collection ) {
 
 __END__
 
-=encoding utf8
+
+=encoding utf-8
 
 =head1 NAME
 
-Compras::Search - Search interface to Compras::UA
+Compras::Search - Client API to Brazil bid system (http://compras.dados.gov.br/)
+
+=head1 INSTALL
+
+To install it you will need perl (5.028 or later) and L<cpanm|https://metacpan.org/pod/distribution/App-cpanminus/bin/cpanm>
+
+    $ git clone https://github.com/marcoarthur/compras-gov.git
+    $ cd compras-gov
+    $ cpanm --installdeps .
+
+We provide a script to try out some searches
+
+    $ ./script/search.pl [1-4] # each number is a search 
 
 =head1 SYNOPSIS
 
-Interface handling cache to Compras::UA. Making less stressful for the server.
-It depends on Redis database. It can be configured under ~/.compras/redis.conf
+    use Compras::UA;
+    use DDP;
+    my $ua = Compras::UA->new( { module => 'licitacoes', params => { valor_inicial => 100000 } } );
+    my $data = $ua->get_data->{results};
+    p $data; # will print a Collection of Compras::Model::Contracts
 
 =head1 DESCRIPTION
 
-A module to search and cache results of search. It depends on C<Mojo::Redis> as
-cache object. It can be configured using configure file.
+The goal is to handle all models as provided L<here|http://compras.dados.gov.br/docs/home.html>
 
-=head1 ATTRIBUTES
+When constructing C<Compras::UA> we pass to the constructor the terms of our search.
+We list these terms, examplifing it, bellow:
 
-=head2 cache
+=over 4
 
-A Mojo::Redis handler.
+=item module:
 
-=head2 log
+The entitie we want data, eg, 'licitacoes' L<details|http://compras.dados.gov.br/docs/detalhe-licitacao.html>
 
-A Logger Object default Mojo::Log
+=item method:
 
-=head2 roles
+This is the actual data the module can provide, eg, 'orgaos' L<details|http://compras.dados.gov.br/docs/licitacoes/v1/orgaos.html>
 
-A hash reference containing Roles to apply to basic Compras::Model.
+=item params: 
 
-=head1 METHODS
+Any search parameters for the method invoked, eg, 'nome' for 'orgaos'
 
-=head2 key($query)
+=item format: 
 
-Calculate the key of query. Based on query and Roles
+The format of response, by default json. Acceptable values are: html, csv.
 
-=head2 search($hashref)
+=back
 
-  $self->search( { module => licitacoes, params => { valor_inicial_min => 1000 } } )
+So the search bellow represents and returns all institutions named 'TRIBUNAL' that have bids listed.
 
-Execute the query caching it. It will rerun the query on server given if query
-had expired.
+    try {
+        my $res = $self->search( { module => licitacoes, params => { valor_inicial_min => 1000 } } )
+        $res->{results}->each( sub { $_->nome } );
+    } catch ($e) {
+        warn "Error $e";
+    }
+
+
+The results are a collection of Models determined by the module parameter.
+Models holds the data that is listed in the documentation for, eg, the above
+search returns Compras::Model::Institutions that contains accessors for
+each listed response the server documents, eg in this case:
+
+    $ele->$_ for qw( ativo codigo codigo_siorg codigo_tipo_adm codigo_tipo_esfera codigo_tipo_poder nome)
+    # prints value of all model public accessor
+
+You can get a list on Server doc or looking at the Models classes.
+
+=head2 get_data
+
+   my $ret = $ua->get_data;
+   $ret->{results}->each( sub ($e, $n) { say join ' ', @{ $e->to_arrayref} } );
+
+Returns hash reference containing data of the search. It runs many searches if the results cannot be completed
+in only one requests. Server handles at most 500 records per request. Those will
+be concurrent requests. Under C<results> key is the array reference with the
+data.
+
+=head2 url
+
+    say $ua->url;
+
+Returns the url that was requested.
+
+=head1 LICENSE
+
+Copyright (C) Marco Arthur.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
 
 =head1 AUTHOR
 
-Marco Arthur,,,
-
-=head1 COPYRIGHT AND LICENSE
-
-
-This is Free Software, Licensed under Perl License.
-
-=head1 SEE ALSO
-
-Compras::UA
+Marco Arthur E<lt>arthurpbs@gmail.comE<gt>
 
 =cut
