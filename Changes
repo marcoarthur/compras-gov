@@ -1,6 +1,7 @@
-Revision history for Perl extension Compras-UA
+Revision history for Perl extension Compras-Search
 
 {{$NEXT}}
+    - change module name: Compras::Search is now the main module
 
 0.05 2020-12-02T13:47:42Z
     - create a role to join two search results

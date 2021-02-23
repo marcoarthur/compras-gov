@@ -18,9 +18,13 @@ ok $model =
 
 is $model->$_, $attr_values->{$_}, "Ok value" for keys %$attr_values;
 
-#rerun from_hash make a no op
-$model->from_hash( { a => 'new a', b => 'new b' } );
-is_deeply $model->to_hash, $attr_values, "Rerun from_hash is no op";
+SKIP: {
+    skip "this feature is under review", 1;
+
+    #rerun from_hash make a no op
+    $model->from_hash( { a => 'new a', b => 'new b' } );
+    is_deeply $model->to_hash, $attr_values, "Rerun from_hash is no op";
+}
 
 # model with callback set for `attr_set' event
 my $new_attrs = { c => 'this is c', d => 'this is d' };
@@ -30,7 +34,7 @@ $model->on(
     # callback uppercases values passed
     attr_set => sub ( $self, $attr ) {
         my $attr_name = $attr->{name};
-        $self->$attr_name( uc $attr->{value} ); # capitalize it
+        $self->$attr_name( uc $attr->{value} );    # capitalize it
     }
 );
 
